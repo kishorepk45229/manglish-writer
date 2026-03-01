@@ -4,12 +4,15 @@ $(document).ready(function() {
     let currentMatchStart = -1;
     let currentMatchEnd = -1;
 
-    // --- 1. Real-time Typing Engine ---
+    // ==========================================
+    // 1. Real-time Typing Engine
+    // ==========================================
     $editor.on('input', function() {
         let text = $editor.val();
         let cursorPos = $editor[0].selectionStart;
         let textBeforeCursor = text.substring(0, cursorPos);
         
+        // Find the active English word being typed
         let match = textBeforeCursor.match(/([a-zA-Z]+)$/);
 
         if (match) {
@@ -22,12 +25,14 @@ $(document).ready(function() {
         }
     });
 
-    // --- 2. Keyboard Navigation (Enter, Space, Arrows) ---
+    // ==========================================
+    // 2. Keyboard Navigation (Enter, Space, Arrows)
+    // ==========================================
     $editor.on('keydown', function(e) {
         let $suggestions = $('.suggestion-item');
         let $active = $('.suggestion-item.active');
 
-        // If suggestions are on screen, hijack the keys
+        // If suggestions are on screen, hijack the specific keys
         if ($suggestions.length > 0) {
             
             // ENTER or SPACE: Insert the active word
@@ -58,7 +63,9 @@ $(document).ready(function() {
         }
     });
 
-    // --- 3. Dictionary API & Rendering ---
+    // ==========================================
+    // 3. Dictionary API & Rendering
+    // ==========================================
     function fetchSuggestions(word) {
         let apiUrl = `https://inputtools.google.com/request?text=${word}&itc=ml-t-i0-und&num=5&cp=0&cs=1&ie=utf-8&oe=utf-8`;
         
@@ -73,7 +80,7 @@ $(document).ready(function() {
         $suggestionBar.empty();
         
         words.forEach((word, index) => {
-            // Auto-select the first word
+            // Auto-select the first word so Space/Enter grabs it instantly
             let activeClass = index === 0 ? 'active' : '';
             let $badge = $(`<span class="suggestion-item ${activeClass}">${word}</span>`);
             
@@ -90,8 +97,10 @@ $(document).ready(function() {
         let before = text.substring(0, currentMatchStart);
         let after = text.substring(currentMatchEnd);
         
+        // Piece string back together with the selected word and a trailing space
         $editor.val(before + malayalamWord + " " + after);
         
+        // Reset cursor to directly after the newly inserted word
         let newCursorPos = currentMatchStart + malayalamWord.length + 1;
         $editor[0].setSelectionRange(newCursorPos, newCursorPos);
         
@@ -105,21 +114,23 @@ $(document).ready(function() {
         currentMatchEnd = -1;
     }
 
-    // --- 4. Copy & DTP Conversion Pipeline ---
+    // ==========================================
+    // 4. Copy & DTP Conversion Pipeline
+    // ==========================================
     
-    // Standard Unicode Copy
+    // Copy Standard Unicode
     $('#btn-copy-unicode').on('click', function() {
         copyToClipboard($editor.val(), $(this), "📋 Copy Unicode");
     });
 
-    // FML-TT Copy Pipeline
+    // Copy and Convert to FML-TT
     $('#btn-copy-fml').on('click', function() {
         let unicodeText = $editor.val();
         let fmlText = convertUnicodeToFML(unicodeText);
         copyToClipboard(fmlText, $(this), "📋 FML-TT");
     });
 
-    // ML-TT Copy Pipeline
+    // Copy and Convert to ML-TT
     $('#btn-copy-ml').on('click', function() {
         let unicodeText = $editor.val();
         let mlText = convertUnicodeToML(unicodeText);
@@ -133,21 +144,59 @@ $(document).ready(function() {
         });
     }
 
-    // --- Font Conversion Logic Hub ---
+    // ==========================================
+    // 5. Advanced DTP Conversion Logic
+    // ==========================================
+    
     function convertUnicodeToFML(text) {
-        // PASTE YOUR UNICODE-TO-FML MAPPING ARRAY LOGIC HERE
-        // Example structure:
-        // text = text.replace(/ക/g, "I"); 
-        // text = text.replace(/ഖ/g, "J");
-        return text; // Currently returns raw text until you paste your map
+        let convertedText = text;
+
+        // PHASE 1: Split Multi-part Vowels (ൊ, ോ, ൌ) into left and right components
+        convertedText = convertedText.replace(/([ക-ഹൺ-ൿ](?:്[ക-ഹൺ-ൿ])*)ൊ/g, "െ$1ാ"); 
+        convertedText = convertedText.replace(/([ക-ഹൺ-ൿ](?:്[ക-ഹൺ-ൿ])*)ോ/g, "േ$1ാ"); 
+        convertedText = convertedText.replace(/([ക-ഹൺ-ൿ](?:്[ക-ഹൺ-ൿ])*)ൌ/g, "െ$1ൗ"); 
+
+        // PHASE 2: Physically move left-side vowels (െ, േ, ൈ) to the front of the consonant/conjunct
+        convertedText = convertedText.replace(/([ക-ഹൺ-ൿ](?:്[ക-ഹൺ-ൿ])*?)([െേൈ])/g, "$2$1");
+
+        // PHASE 3: Map complex Conjuncts (koottaksharangal) FIRST
+        // ** REPLACE THE "X", "Y", "Z" WITH YOUR ACTUAL FML-TT KEYBOARD CHARACTERS **
+        convertedText = convertedText.replace(/ണ്[ടറ]/g, "X"); // Example: ണ്ട
+        convertedText = convertedText.replace(/ങ്[ക]/g, "Y"); // Example: ങ്ക
+        convertedText = convertedText.replace(/ഞ്[ച]/g, "Z"); // Example: ഞ്ച
+        convertedText = convertedText.replace(/ക്[ക]/g, "W"); // Example: ക്ക
+        // ADD MORE CONJUNCTS HERE: മ്പ, ന്ത, ങ്ങ, etc.
+
+        // PHASE 4: Map Vowel Signs (Left side ones are already safely at the front)
+        convertedText = convertedText.replace(/െ/g, "A"); // Replace "A" with FML E-sign
+        convertedText = convertedText.replace(/േ/g, "B"); // Replace "B" with FML long E-sign
+        convertedText = convertedText.replace(/ൈ/g, "C"); // Replace "C" with FML Ai-sign
+        convertedText = convertedText.replace(/ാ/g, "D"); // Replace "D" with FML Aa-sign
+
+        // PHASE 5: Map Single Consonants and Chillus
+        convertedText = convertedText.replace(/ക/g, "k"); 
+        convertedText = convertedText.replace(/ഖ/g, "K");
+        // ADD THE REST OF THE ALPHABET HERE...
+
+        // Clean up remaining Viramas (Chandrakkala)
+        convertedText = convertedText.replace(/്/g, "v"); // Replace "v" with FML Chandrakkala
+
+        return convertedText;
     }
 
     function convertUnicodeToML(text) {
-        // PASTE YOUR UNICODE-TO-ML MAPPING ARRAY LOGIC HERE
-        return text; 
+        let convertedText = text;
+        
+        // Implement the same 5-phase structure here for ML-TT fonts.
+        // The ML-TT mapping will use different ASCII characters than FML-TT,
+        // but the regex grouping logic remains exactly the same.
+        
+        return convertedText; 
     }
 
-    // Dark Mode
+    // ==========================================
+    // 6. UI Utilities
+    // ==========================================
     $('#btn-theme').on('click', function() {
         let $body = $('body');
         $body.attr('data-theme', $body.attr('data-theme') === 'dark' ? '' : 'dark');
