@@ -34,7 +34,7 @@
             display: flex;
         }
 
-        /* --- LEFT SIDEBAR --- */
+        /* --- LEFT SIDEBAR (Mobile Responsive) --- */
         .sidebar {
             width: 260px;
             height: 100vh;
@@ -44,6 +44,8 @@
             flex-direction: column;
             padding: 24px 20px;
             flex-shrink: 0;
+            transition: left 0.3s ease;
+            z-index: 1000;
         }
 
         .brand {
@@ -122,7 +124,6 @@
             border-color: var(--accent-color);
         }
 
-        /* User Profile */
         .user-profile {
             display: flex;
             align-items: center;
@@ -148,6 +149,14 @@
         .user-name { font-weight: 600; font-size: 0.85rem; }
         .user-role { font-size: 0.75rem; color: var(--text-secondary); }
 
+        /* Mobile Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 999;
+        }
 
         /* --- MAIN WORKSPACE --- */
         .workspace {
@@ -157,17 +166,27 @@
             background-color: var(--bg-main);
             height: 100vh;
             position: relative;
+            width: calc(100% - 260px);
         }
 
         /* Toolbar */
         .toolbar {
-            height: 60px;
+            min-height: 60px;
             border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
-            padding: 0 30px;
+            padding: 10px 30px;
             gap: 15px;
             flex-wrap: wrap;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-primary);
         }
 
         .tool-btn {
@@ -225,6 +244,8 @@
             min-height: 56px;
             background: var(--bg-sidebar);
             border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+            white-space: nowrap;
         }
         
         .suggestion-placeholder { color: var(--text-secondary); font-size: 0.9rem; font-style: italic; }
@@ -238,6 +259,7 @@
             font-family: 'Manjari', sans-serif;
             font-size: 1.1rem;
             transition: 0.2s;
+            display: inline-block;
         }
         .suggestion-item.active, .suggestion-item:hover {
             background: var(--accent-color);
@@ -262,16 +284,18 @@
 
         /* Bottom Status Bar */
         .status-bar {
-            height: 60px;
+            min-height: 60px;
             border-top: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 30px;
+            padding: 10px 30px;
             background-color: var(--bg-main);
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
-        .status-group { display: flex; gap: 10px; align-items: center; }
+        .status-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
         .action-btn {
             padding: 8px 16px;
@@ -285,6 +309,7 @@
             align-items: center;
             gap: 6px;
             transition: 0.2s;
+            white-space: nowrap;
         }
         .action-btn:hover { background-color: var(--bg-sidebar); border-color: var(--accent-color); }
         .action-btn.recording { background-color: #fee2e2; border-color: #ef4444; color: #b91c1c; }
@@ -308,11 +333,11 @@
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0, 0, 0, 0.4);
-            display: none; justify-content: center; align-items: center; z-index: 1000;
+            display: none; justify-content: center; align-items: center; z-index: 2000;
         }
         .modal-content {
             background: var(--bg-main); padding: 25px; border-radius: 12px;
-            width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 90%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             display: flex; flex-direction: column; gap: 15px;
         }
         .modal-header { display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 1.1rem; }
@@ -325,13 +350,53 @@
             background: var(--accent-color); color: var(--text-on-accent);
             border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;
         }
+
+        /* --- MOBILE RESPONSIVENESS --- */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -260px;
+                top: 0;
+            }
+            .sidebar.open {
+                left: 0;
+            }
+            .sidebar-overlay.open {
+                display: block;
+            }
+            .workspace {
+                width: 100%;
+            }
+            .menu-toggle {
+                display: block;
+            }
+            .toolbar {
+                padding: 10px 15px;
+            }
+            .suggestion-bar {
+                padding: 10px 15px;
+            }
+            #editor {
+                padding: 15px;
+            }
+            .status-bar {
+                padding: 10px 15px;
+                justify-content: center;
+            }
+            .keyboard-toggle {
+                width: 100%;
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <aside class="sidebar">
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <aside class="sidebar" id="sidebar">
         <div class="brand">
-            <div class="brand-logo">തൂ</div>
+            <div class="brand-logo">മ</div>
             Thooval
         </div>
         <button class="new-file-btn"><span>➕</span> New File</button>
@@ -352,6 +417,8 @@
     <main class="workspace">
         
         <div class="toolbar">
+            <button class="menu-toggle" id="menu-toggle">☰</button>
+
             <button class="tool-btn" id="btn-undo" title="Undo">&#x21BA;</button>
             <button class="tool-btn" id="btn-redo" title="Redo">&#x21BB;</button>
             
@@ -379,7 +446,7 @@
             <div class="divider"></div>
 
             <div class="keyboard-toggle">
-                <label><input type="radio" name="kbd" value="phonetic" checked> Phonetic (Unicode)</label>
+                <label><input type="radio" name="kbd" value="phonetic" checked> Phonetic</label>
                 <label><input type="radio" name="kbd" value="inscript"> Inscript</label>
             </div>
         </div>
@@ -396,11 +463,11 @@
                     <button class="lang-btn active" id="btn-lang-ml">മലയാളം</button>
                     <button class="lang-btn" id="btn-lang-en">English</button>
                 </div>
-                <button class="action-btn" id="btn-voice">🎤 Voice Typing</button>
+                <button class="action-btn" id="btn-voice">🎤 Voice</button>
             </div>
             
             <div class="status-group">
-                <button class="action-btn" id="btn-copy-uni">📋 Copy Unicode</button>
+                <button class="action-btn" id="btn-copy-uni">📋 Unicode</button>
                 <button class="action-btn btn-dtp" id="btn-copy-fml">📄 Generate FML-TT</button>
             </div>
         </div>
@@ -411,7 +478,7 @@
                     <span>FML-TT Converted Text</span>
                     <button class="close-modal" id="close-modal">&times;</button>
                 </div>
-                <p style="font-size: 0.85rem; color: var(--text-secondary);">Review and edit the raw FML ASCII characters below before copying to your DTP software (Canva, Photoshop, etc).</p>
+                <p style="font-size: 0.85rem; color: var(--text-secondary);">Review and edit the raw FML ASCII characters below before copying to your DTP software.</p>
                 <textarea id="fml-output-area"></textarea>
                 <button class="modal-btn" id="modal-copy-btn">📋 Copy to Clipboard</button>
             </div>
@@ -429,6 +496,16 @@
             let currentKeyboard = 'phonetic'; // 'phonetic' or 'inscript'
             let currentMatchStart = -1;
             let currentMatchEnd = -1;
+
+            // --- Mobile Sidebar Toggle ---
+            $('#menu-toggle').on('click', function() {
+                $('#sidebar').addClass('open');
+                $('#sidebar-overlay').addClass('open');
+            });
+            $('#sidebar-overlay').on('click', function() {
+                $('#sidebar').removeClass('open');
+                $('#sidebar-overlay').removeClass('open');
+            });
 
             // --- Language & Keyboard Toggles ---
             $('#btn-lang-en').on('click', function() {
@@ -602,7 +679,7 @@
                 };
 
                 recognition.onend = function() {
-                    $('#btn-voice').removeClass('recording').html('🎤 Voice Typing');
+                    $('#btn-voice').removeClass('recording').html('🎤 Voice');
                 };
             }
 
@@ -614,42 +691,65 @@
                 } else {
                     recognition.lang = currentLang === 'ml' ? 'ml-IN' : 'en-US';
                     recognition.start();
-                    $(this).addClass('recording').html('⏹ Stop Listening');
+                    $(this).addClass('recording').html('⏹ Stop');
                 }
             });
 
 
-            // --- FML POPUP & CONVERSION ---
+            // --- THE CORRECTED FML CONVERSION ENGINE ---
             $('#btn-copy-fml').on('click', function() {
                 let text = $editor.val();
                 
-                // 1. Split compound vowels
-                text = text.replace(/ൊ/g, "ൊ"); 
-                text = text.replace(/ോ/g, "ോ"); 
-                text = text.replace(/ൌ/g, "ൌ"); 
+                // 1. Force split compound vowels using strict Unicode Hex to prevent ligature bugs
+                text = text.replace(/\u0D4A/g, "\u0D46\u0D3E"); // ൊ -> െ + ാ
+                text = text.replace(/\u0D4B/g, "\u0D47\u0D3E"); // ോ -> േ + ാ
+                text = text.replace(/\u0D4C/g, "\u0D46\u0D57"); // ൌ -> െ + ൗ
 
-                // 2. Safely shift LEFT modifiers (െ, േ, ൈ) to the front
+                // 2. Pre-map Koottaksharangal (Conjuncts) BEFORE shifting vowels or translating single letters
+                const conjuncts = {
+                    'ണ്ട': 'ï', 'ക്ക': '¡', 'ങ്ക': '¢', 'ങ്ങ': '£', 'ച്ച': '¤', 'ഞ്ച': '¥', 
+                    'ഞ്ഞ': '¦', 'ട്ട': '§', 'ണ്ണ': '©', 'ത്ത': 'ª', 'ന്ത': '«', 'ന്ന': '¬',
+                    'പ്പ': '­', 'മ്പ': '®', 'മ്മ': '¯', 'ല്ല': 'Ã', 'ള്ള': 'Å'
+                };
+                for (let [ml, ascii] of Object.entries(conjuncts)) {
+                    text = text.split(ml).join(ascii);
+                }
+
+                // 3. Safely shift LEFT modifiers (െ, േ, ൈ) to the front
+                // Note: ി (\u0D3F) and ീ (\u0D40) stay on the right for FML fonts
                 const consGroup = "([ക-ഹളഴറൺ-ൿ](?:്[ക-ഹളഴറൺ-ൿ])*)"; 
-                const leftVowels = "([െേൈ])"; 
+                const leftVowels = "([\u0D46\u0D47\u0D48])"; 
                 text = text.replace(new RegExp(consGroup + leftVowels, "g"), "$2$1");
 
-                // 3. Convert to Standard FML Keymap
+                // 4. Convert using the specific Manglish/ML-TT Keymap
                 const fmlMap = {
-                    'െ': 's', 'േ': 't', 'ൈ': 'S',
-                    'ി': 'n', 'ീ': 'o', 'ു': 'p', 'ൂ': 'q', 'ൃ': 'r', 'ാ': 'm', 'ൗ': 'w',
-                    'ർ': 'À', 'ൽ': 'Â', 'ൾ': 'Ä', 'ൺ': 'Æ', 'ൻ': '³', 'ം': 'w', 'ഃ': 'x',
+                    // Modifiers
+                    '\u0D46': 's', '\u0D47': 't', '\u0D48': 'u', // Left: െ, േ, ൈ
+                    '\u0D3F': 'n', '\u0D40': 'o', '\u0D41': 'p', '\u0D42': 'q', '\u0D43': 'r', '\u0D3E': 'm', '\u0D57': 'w', // Right/Bottom: ി, ീ, ു, ൂ, ൃ, ാ, ൗ
+                    '\u0D4D': 'v', '\u0D02': 'x', '\u0D03': 'y', // Virama, Anusvaram, Visargam
+                    
+                    // Chillus
+                    'ർ': 'À', 'ൽ': 'Â', 'ൾ': 'Ä', 'ൺ': 'Æ', 'ൻ': '³', 
+                    
+                    // Base Consonants
                     'ക': 'I', 'ഖ': 'J', 'ഗ': 'K', 'ഘ': 'L', 'ങ': 'M',
                     'ച': 'N', 'ഛ': 'O', 'ജ': 'P', 'ഝ': 'Q', 'ഞ': 'R',
                     'ട': 'S', 'ഠ': 'T', 'ഡ': 'U', 'ഢ': 'V', 'ണ': 'W',
                     'ത': 'X', 'ഥ': 'Y', 'ദ': 'Z', 'ധ': 'a', 'ന': 'b',
                     'പ': 'c', 'ഫ': 'd', 'ബ': 'e', 'ഭ': 'f', 'മ': 'g',
-                    'യ': 'h', 'ര': 'i', 'ല': 'j', 'വ': 'k', 'ശ': 'l',
-                    'ഷ': 'µ', 'സ': 'n', 'ഹ': 'o', 'ള': 'p', 'ഴ': 'q', 'റ': 'r',
-                    'അ': 'A', 'ആ': 'B', 'ഇ': 'C', 'ഈ': 'D', 'ഉ': 'E', '്': 'v'
+                    
+                    // The Disputed Letters (Manglish ML-TT Map)
+                    'വ': 'h', 'ശ': 'i', 'ഷ': 'j', 'സ': 'k', 'ഹ': 'l', 
+                    'ള': 'z', 'ഴ': '{', 'റ': '|', 'യ': 'e', 'ര': 'f', 'ല': 'g', 
+                    
+                    // Vowels
+                    'അ': 'A', 'ആ': 'B', 'ഇ': 'C', 'ഉ': 'D', 'ഊ': 'E', 'ഋ': 'F', 'എ': 'G', 'ഏ': 'H'
                 };
 
                 let fmlOutput = "";
-                for (let i = 0; i < text.length; i++) fmlOutput += fmlMap[text[i]] || text[i];
+                for (let i = 0; i < text.length; i++) {
+                    fmlOutput += conjuncts[text[i]] ? text[i] : (fmlMap[text[i]] || text[i]);
+                }
 
                 $('#fml-output-area').val(fmlOutput);
                 $('#fml-modal').fadeIn(200).css("display", "flex");
@@ -668,7 +768,7 @@
                 navigator.clipboard.writeText($editor.val());
                 let $btn = $(this);
                 $btn.html('✅ Copied!');
-                setTimeout(() => $btn.html('📋 Copy Unicode'), 2000);
+                setTimeout(() => $btn.html('📋 Unicode'), 2000);
             });
         });
     </script>
