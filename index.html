@@ -156,6 +156,7 @@
             flex-direction: column;
             background-color: var(--bg-main);
             height: 100vh;
+            position: relative;
         }
 
         /* Toolbar */
@@ -166,6 +167,7 @@
             align-items: center;
             padding: 0 30px;
             gap: 15px;
+            flex-wrap: wrap;
         }
 
         .tool-btn {
@@ -197,6 +199,22 @@
             color: var(--text-primary);
         }
         .select-format:hover { background-color: var(--bg-sidebar); }
+
+        /* Keyboard Toggle */
+        .keyboard-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            background: var(--bg-sidebar);
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+        }
+        .keyboard-toggle label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+        .keyboard-toggle input { accent-color: var(--accent-color); cursor: pointer; }
 
         /* Suggestion Dictionary Bar */
         .suggestion-bar {
@@ -269,6 +287,7 @@
             transition: 0.2s;
         }
         .action-btn:hover { background-color: var(--bg-sidebar); border-color: var(--accent-color); }
+        .action-btn.recording { background-color: #fee2e2; border-color: #ef4444; color: #b91c1c; }
         
         .btn-dtp { background-color: var(--accent-light); color: var(--text-on-accent); border-color: var(--accent-color); }
         .btn-dtp:hover { background-color: var(--accent-color); }
@@ -284,30 +303,43 @@
             padding: 8px 16px; border: none; background: none; cursor: pointer; font-size: 0.9rem;
         }
         .lang-btn.active { background: var(--accent-color); color: var(--text-on-accent); font-weight: 600; }
+
+        /* --- MODAL POPUP --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.4);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content {
+            background: var(--bg-main); padding: 25px; border-radius: 12px;
+            width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            display: flex; flex-direction: column; gap: 15px;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 1.1rem; }
+        .close-modal { cursor: pointer; font-size: 1.5rem; color: var(--text-secondary); border: none; background: none; }
+        #fml-output-area {
+            width: 100%; height: 150px; padding: 15px; border-radius: 8px;
+            border: 1px solid var(--border-color); font-size: 1.2rem; resize: none; outline: none;
+        }
+        .modal-btn {
+            background: var(--accent-color); color: var(--text-on-accent);
+            border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
     <aside class="sidebar">
         <div class="brand">
-            <div class="brand-logo">അ</div>
+            <div class="brand-logo">തൂ</div>
             Thooval
         </div>
-
-        <button class="new-file-btn">
-            <span>➕</span> New File
-        </button>
-
+        <button class="new-file-btn"><span>➕</span> New File</button>
         <div class="file-list">
             <div class="list-header">Today</div>
-            <div class="file-item active">
-                <span>📄</span> Draft_01.txt
-            </div>
-            <div class="file-item">
-                <span>📄</span> Chapter_2_Notes
-            </div>
+            <div class="file-item active"><span>📄</span> Draft_01.txt</div>
+            <div class="file-item"><span>📄</span> Chapter_2_Notes</div>
         </div>
-
         <div class="user-profile">
             <div class="avatar">KK</div>
             <div class="user-details">
@@ -343,6 +375,13 @@
             <button class="tool-btn" id="btn-bold" title="Bold"><b>B</b></button>
             <button class="tool-btn" id="btn-italic" title="Italic"><i>I</i></button>
             <button class="tool-btn" id="btn-underline" title="Underline"><u>U</u></button>
+
+            <div class="divider"></div>
+
+            <div class="keyboard-toggle">
+                <label><input type="radio" name="kbd" value="phonetic" checked> Phonetic (Unicode)</label>
+                <label><input type="radio" name="kbd" value="inscript"> Inscript</label>
+            </div>
         </div>
 
         <div class="suggestion-bar" id="suggestion-bar">
@@ -354,15 +393,27 @@
         <div class="status-bar">
             <div class="status-group">
                 <div class="lang-toggle">
-                    <button class="lang-btn active">മലയാളം</button>
-                    <button class="lang-btn">English</button>
+                    <button class="lang-btn active" id="btn-lang-ml">മലയാളം</button>
+                    <button class="lang-btn" id="btn-lang-en">English</button>
                 </div>
-                <button class="action-btn">🎤 Voice Typing</button>
+                <button class="action-btn" id="btn-voice">🎤 Voice Typing</button>
             </div>
             
             <div class="status-group">
                 <button class="action-btn" id="btn-copy-uni">📋 Copy Unicode</button>
-                <button class="action-btn btn-dtp" id="btn-copy-fml">📄 Copy FML-TT</button>
+                <button class="action-btn btn-dtp" id="btn-copy-fml">📄 Generate FML-TT</button>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="fml-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span>FML-TT Converted Text</span>
+                    <button class="close-modal" id="close-modal">&times;</button>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-secondary);">Review and edit the raw FML ASCII characters below before copying to your DTP software (Canva, Photoshop, etc).</p>
+                <textarea id="fml-output-area"></textarea>
+                <button class="modal-btn" id="modal-copy-btn">📋 Copy to Clipboard</button>
             </div>
         </div>
 
@@ -372,13 +423,45 @@
         $(document).ready(function() {
             const $editor = $('#editor');
             const $suggestionBar = $('#suggestion-bar');
+            
+            // App State
+            let currentLang = 'ml'; // 'ml' or 'en'
+            let currentKeyboard = 'phonetic'; // 'phonetic' or 'inscript'
             let currentMatchStart = -1;
             let currentMatchEnd = -1;
 
-            // --- 1. Custom History for Undo/Redo ---
+            // --- Language & Keyboard Toggles ---
+            $('#btn-lang-en').on('click', function() {
+                currentLang = 'en';
+                $('.lang-btn').removeClass('active');
+                $(this).addClass('active');
+                clearSuggestions();
+                $suggestionBar.html('<span class="suggestion-placeholder">English mode active. Type normally.</span>');
+                $editor.focus();
+            });
+
+            $('#btn-lang-ml').on('click', function() {
+                currentLang = 'ml';
+                $('.lang-btn').removeClass('active');
+                $(this).addClass('active');
+                clearSuggestions();
+                $editor.focus();
+            });
+
+            $('input[name="kbd"]').on('change', function() {
+                currentKeyboard = $(this).val();
+                clearSuggestions();
+                if(currentKeyboard === 'inscript') {
+                    $suggestionBar.html('<span class="suggestion-placeholder">Inscript keyboard active. Type directly using layout.</span>');
+                } else {
+                    $suggestionBar.html('<span class="suggestion-placeholder">Type in English (e.g., \'namaskaram\')...</span>');
+                }
+                $editor.focus();
+            });
+
+            // --- History ---
             let textHistory = [""];
             let historyIndex = 0;
-
             function saveHistory() {
                 let currentVal = $editor.val();
                 if (currentVal !== textHistory[historyIndex]) {
@@ -387,40 +470,51 @@
                     historyIndex++;
                 }
             }
+            $('#btn-undo').on('click', function() { if (historyIndex > 0) { historyIndex--; $editor.val(textHistory[historyIndex]); } });
+            $('#btn-redo').on('click', function() { if (historyIndex < textHistory.length - 1) { historyIndex++; $editor.val(textHistory[historyIndex]); } });
 
-            $('#btn-undo').on('click', function() {
-                if (historyIndex > 0) {
-                    historyIndex--;
-                    $editor.val(textHistory[historyIndex]);
-                }
-            });
-
-            $('#btn-redo').on('click', function() {
-                if (historyIndex < textHistory.length - 1) {
-                    historyIndex++;
-                    $editor.val(textHistory[historyIndex]);
-                }
-            });
-
-            // --- 2. Toolbar Formatting Logic ---
+            // --- Formatting ---
             $('#font-family-select').on('change', function() { $editor.css('font-family', $(this).val()); });
             $('#font-size-select').on('change', function() { $editor.css('font-size', $(this).val() + 'px'); });
-            
-            $('#btn-bold').on('click', function() { 
-                $(this).toggleClass('active'); 
-                $editor.css('font-weight', $(this).hasClass('active') ? 'bold' : 'normal'); 
-            });
-            $('#btn-italic').on('click', function() { 
-                $(this).toggleClass('active'); 
-                $editor.css('font-style', $(this).hasClass('active') ? 'italic' : 'normal'); 
-            });
-            $('#btn-underline').on('click', function() { 
-                $(this).toggleClass('active'); 
-                $editor.css('text-decoration', $(this).hasClass('active') ? 'underline' : 'none'); 
+            $('#btn-bold').on('click', function() { $(this).toggleClass('active'); $editor.css('font-weight', $(this).hasClass('active') ? 'bold' : 'normal'); });
+            $('#btn-italic').on('click', function() { $(this).toggleClass('active'); $editor.css('font-style', $(this).hasClass('active') ? 'italic' : 'normal'); });
+            $('#btn-underline').on('click', function() { $(this).toggleClass('active'); $editor.css('text-decoration', $(this).hasClass('active') ? 'underline' : 'none'); });
+
+
+            // --- INSCRIPT KEYMAP ---
+            const inscriptMap = {
+                'D':'അ', 'E':'ആ', 'F':'ഇ', 'R':'ഈ', 'G':'ഉ', 'T':'ഊ', '+':'ഋ', 'S':'എ', 'W':'ഏ', 'A':'ഒ', 'Q':'ഓ',
+                'k':'ക', 'K':'ഖ', 'i':'ഗ', 'I':'ഘ', 'U':'ങ', ';':'ച', ':':'ഛ', 'p':'ജ', 'P':'ഝ', '}':'ഞ',
+                "'":'ട', '"':'ഠ', '[':'ഡ', '{':'ഢ', 'C':'ണ', 'l':'ത', 'L':'ഥ', 'o':'ദ', 'O':'ധ', 'v':'ന',
+                'h':'പ', 'H':'ഫ', 'y':'ബ', 'Y':'ഭ', 'c':'മ', '/':'യ', 'j':'ര', 'n':'ല', 'b':'വ', 'M':'ശ',
+                '<':'ഷ', 'm':'സ', 'u':'ഹ', 'N':'ള', '>':'ഴ', 'J':'റ',
+                'e':'ാ', 'f':'ി', 'r':'ീ', 'g':'ു', 't':'ൂ', '=':'ൃ', 's':'െ', 'w':'േ', 'a':'ൊ', 'q':'ോ', 'd':'്',
+                'X':'ം', '_':'ഃ'
+            };
+
+            $editor.on('keypress', function(e) {
+                if (currentLang === 'ml' && currentKeyboard === 'inscript') {
+                    let char = String.fromCharCode(e.which);
+                    if (inscriptMap[char]) {
+                        e.preventDefault();
+                        insertTextAtCursor(inscriptMap[char]);
+                    }
+                }
             });
 
-            // --- 3. Real-time Typing & Dictionary ---
+            function insertTextAtCursor(text) {
+                let start = $editor[0].selectionStart;
+                let end = $editor[0].selectionEnd;
+                let val = $editor.val();
+                $editor.val(val.substring(0, start) + text + val.substring(end));
+                $editor[0].selectionStart = $editor[0].selectionEnd = start + text.length;
+                saveHistory();
+            }
+
+            // --- PHONETIC DICTIONARY (Google API) ---
             $editor.on('input', function() {
+                if (currentLang === 'en' || currentKeyboard === 'inscript') return;
+
                 let text = $editor.val();
                 let cursorPos = $editor[0].selectionStart;
                 let textBeforeCursor = text.substring(0, cursorPos);
@@ -436,12 +530,11 @@
             });
 
             let typingTimer;
-            $editor.on('keyup', function() {
-                clearTimeout(typingTimer);
-                typingTimer = setTimeout(saveHistory, 1000); 
-            });
+            $editor.on('keyup', function() { clearTimeout(typingTimer); typingTimer = setTimeout(saveHistory, 1000); });
 
             $editor.on('keydown', function(e) {
+                if (currentLang === 'en' || currentKeyboard === 'inscript') return;
+                
                 let $active = $('.suggestion-item.active');
                 if ($('.suggestion-item').length > 0) {
                     if (e.key === 'Enter' || e.key === ' ') {
@@ -488,35 +581,63 @@
             }
 
             function clearSuggestions() {
+                if(currentLang === 'en' || currentKeyboard === 'inscript') return;
                 $suggestionBar.html('<span class="suggestion-placeholder">Type in English (e.g., \'namaskaram\')...</span>');
             }
 
-            // --- 4. The Corrected FML-TT Conversion Engine ---
+
+            // --- VOICE TYPING ---
+            let recognition;
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+
+                recognition.onresult = function(event) {
+                    let finalTranscript = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript;
+                    }
+                    if (finalTranscript) insertTextAtCursor(finalTranscript + " ");
+                };
+
+                recognition.onend = function() {
+                    $('#btn-voice').removeClass('recording').html('🎤 Voice Typing');
+                };
+            }
+
+            $('#btn-voice').on('click', function() {
+                if (!recognition) return alert("Voice typing is not supported in this browser. Try Chrome.");
+                
+                if ($(this).hasClass('recording')) {
+                    recognition.stop();
+                } else {
+                    recognition.lang = currentLang === 'ml' ? 'ml-IN' : 'en-US';
+                    recognition.start();
+                    $(this).addClass('recording').html('⏹ Stop Listening');
+                }
+            });
+
+
+            // --- FML POPUP & CONVERSION ---
             $('#btn-copy-fml').on('click', function() {
                 let text = $editor.val();
                 
-                // STAGE 1: Safely split compound vowels into left and right components
+                // 1. Split compound vowels
                 text = text.replace(/ൊ/g, "ൊ"); 
                 text = text.replace(/ോ/g, "ോ"); 
                 text = text.replace(/ൌ/g, "ൌ"); 
 
-                // STAGE 2: The Core Bug Fix! 
-                // Only move 'െ', 'േ', and 'ൈ' BEFORE the consonant. 
-                // DO NOT move 'ി' or 'ീ' because FML fonts require them to stay on the right.
+                // 2. Safely shift LEFT modifiers (െ, േ, ൈ) to the front
                 const consGroup = "([ക-ഹളഴറൺ-ൿ](?:്[ക-ഹളഴറൺ-ൿ])*)"; 
-                const leftVowels = "([െേൈ])"; // Notice: ി and ീ are no longer here!
-                const regexMove = new RegExp(consGroup + leftVowels, "g");
-                text = text.replace(regexMove, "$2$1");
+                const leftVowels = "([െേൈ])"; 
+                text = text.replace(new RegExp(consGroup + leftVowels, "g"), "$2$1");
 
-                // STAGE 3: Map to FML / Karthika Layout Characters
+                // 3. Convert to Standard FML Keymap
                 const fmlMap = {
-                    // Left Vowels (Moved by Regex)
                     'െ': 's', 'േ': 't', 'ൈ': 'S',
-                    // Right Vowels & Modifiers (Stay in place)
                     'ി': 'n', 'ീ': 'o', 'ു': 'p', 'ൂ': 'q', 'ൃ': 'r', 'ാ': 'm', 'ൗ': 'w',
-                    // Chillus
-                    'ർ': 'À', 'ൽ': 'Â', 'ൾ': 'Ä', 'ൺ': 'Æ', 'ൻ': '³',
-                    // Base Consonants
+                    'ർ': 'À', 'ൽ': 'Â', 'ൾ': 'Ä', 'ൺ': 'Æ', 'ൻ': '³', 'ം': 'w', 'ഃ': 'x',
                     'ക': 'I', 'ഖ': 'J', 'ഗ': 'K', 'ഘ': 'L', 'ങ': 'M',
                     'ച': 'N', 'ഛ': 'O', 'ജ': 'P', 'ഝ': 'Q', 'ഞ': 'R',
                     'ട': 'S', 'ഠ': 'T', 'ഡ': 'U', 'ഢ': 'V', 'ണ': 'W',
@@ -524,22 +645,23 @@
                     'പ': 'c', 'ഫ': 'd', 'ബ': 'e', 'ഭ': 'f', 'മ': 'g',
                     'യ': 'h', 'ര': 'i', 'ല': 'j', 'വ': 'k', 'ശ': 'l',
                     'ഷ': 'µ', 'സ': 'n', 'ഹ': 'o', 'ള': 'p', 'ഴ': 'q', 'റ': 'r',
-                    // Vowels
-                    'അ': 'A', 'ആ': 'B', 'ഇ': 'C', 'ഈ': 'D', 'ഉ': 'E',
-                    // Virama
-                    '്': 'v'
+                    'അ': 'A', 'ആ': 'B', 'ഇ': 'C', 'ഈ': 'D', 'ഉ': 'E', '്': 'v'
                 };
 
                 let fmlOutput = "";
-                for (let i = 0; i < text.length; i++) {
-                    fmlOutput += fmlMap[text[i]] || text[i];
-                }
+                for (let i = 0; i < text.length; i++) fmlOutput += fmlMap[text[i]] || text[i];
 
-                navigator.clipboard.writeText(fmlOutput);
-                let $btn = $(this);
-                $btn.html('✅ Copied FML');
-                setTimeout(() => $btn.html('📄 Copy FML-TT'), 2000);
+                $('#fml-output-area').val(fmlOutput);
+                $('#fml-modal').fadeIn(200).css("display", "flex");
             });
+
+            $('#modal-copy-btn').on('click', function() {
+                navigator.clipboard.writeText($('#fml-output-area').val());
+                $(this).text('✅ Copied to Clipboard!');
+                setTimeout(() => $(this).text('📋 Copy to Clipboard'), 2000);
+            });
+
+            $('#close-modal').on('click', function() { $('#fml-modal').fadeOut(200); });
 
             // Standard Copy
             $('#btn-copy-uni').on('click', function() {
