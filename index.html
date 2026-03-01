@@ -331,7 +331,7 @@
 
     <aside class="sidebar">
         <div class="brand">
-            <div class="brand-logo">യ</div>
+            <div class="brand-logo">തൂ</div>
             Thooval
         </div>
         <button class="new-file-btn"><span>➕</span> New File</button>
@@ -623,62 +623,54 @@
             $('#btn-copy-fml').on('click', function() {
                 let text = $editor.val();
                 
-                // 1. Force split compound vowels using strict Unicode Hex to prevent ligature bugs
-                text = text.replace(/\u0D4A/g, "\u0D46\u0D3E"); // ൊ -> െ + ാ
-                text = text.replace(/\u0D4B/g, "\u0D47\u0D3E"); // ോ -> േ + ാ
-                text = text.replace(/\u0D4C/g, "\u0D46\u0D57"); // ൌ -> െ + ൗ
+                // 1. Split compound vowels
+                text = text.replace(/ൊ/g, "ൊ"); 
+                text = text.replace(/ോ/g, "ോ"); 
+                text = text.replace(/ൌ/g, "ൌ"); 
 
-                // 2. Pre-map Koottaksharangal (Conjuncts) BEFORE shifting vowels or translating single letters
-                const conjuncts = {
-                    'ണ്ട': 'ï', 'ക്ക': '¡', 'ങ്ക': '¢', 'ങ്ങ': '£', 'ച്ച': '¤', 'ഞ്ച': '¥', 
-                    'ഞ്ഞ': '¦', 'ട്ട': '§', 'ണ്ണ': '©', 'ത്ത': 'ª', 'ന്ത': '«', 'ന്ന': '¬',
-                    'പ്പ': '­', 'മ്പ': '®', 'മ്മ': '¯'
-                };
-                for (let [ml, ascii] of Object.entries(conjuncts)) {
-                    text = text.split(ml).join(ascii);
-                }
-
-                // 3. Safely shift LEFT modifiers (െ, േ, ൈ) to the front
-                // Note: ി (\u0D3F) and ീ (\u0D40) stay on the right for FML fonts
+                // 2. Safely shift LEFT modifiers (െ, േ, ൈ) to the front
                 const consGroup = "([ക-ഹളഴറൺ-ൿ](?:്[ക-ഹളഴറൺ-ൿ])*)"; 
-                const leftVowels = "([\u0D46\u0D47\u0D48])"; 
+                const leftVowels = "([െേൈ])"; 
                 text = text.replace(new RegExp(consGroup + leftVowels, "g"), "$2$1");
 
-                // 4. Convert using the specific Manglish.app FML Keymap
+                // 3. Convert to Standard FML Keymap
                 const fmlMap = {
-                    // Modifiers
-                    '\u0D46': 's', '\u0D47': 't', '\u0D48': 'u', // Left: െ, േ, ൈ
-                    '\u0D3F': 'n', '\u0D40': 'o', '\u0D41': 'p', '\u0D42': 'q', '\u0D43': 'r', '\u0D3E': 'm', '\u0D57': 'w', // Right/Bottom: ി, ീ, ു, ൂ, ൃ, ാ, ൗ
-                    '\u0D4D': 'v', '\u0D02': 'x', '\u0D03': 'y', // Virama, Anusvaram, Visargam
-                    
-                    // Chillus
-                    'ർ': 'À', 'ൽ': 'Â', 'ൾ': 'Ä', 'ൺ': 'Æ', 'ൻ': '³', 
-                    
-                    // Base Consonants
+                    'െ': 's', 'േ': 't', 'ൈ': 'S',
+                    'ി': 'n', 'ീ': 'o', 'ു': 'p', 'ൂ': 'q', 'ൃ': 'r', 'ാ': 'm', 'ൗ': 'w',
+                    'ർ': 'À', 'ൽ': 'Â', 'ൾ': 'Ä', 'ൺ': 'Æ', 'ൻ': '³', 'ം': 'w', 'ഃ': 'x',
                     'ക': 'I', 'ഖ': 'J', 'ഗ': 'K', 'ഘ': 'L', 'ങ': 'M',
                     'ച': 'N', 'ഛ': 'O', 'ജ': 'P', 'ഝ': 'Q', 'ഞ': 'R',
                     'ട': 'S', 'ഠ': 'T', 'ഡ': 'U', 'ഢ': 'V', 'ണ': 'W',
                     'ത': 'X', 'ഥ': 'Y', 'ദ': 'Z', 'ധ': 'a', 'ന': 'b',
                     'പ': 'c', 'ഫ': 'd', 'ബ': 'e', 'ഭ': 'f', 'മ': 'g',
-                    
-                    // The Disputed Letters (Manglish Map)
-                    'വ': 'h', 'ശ': 'i', 'ഷ': 'j', 'സ': 'k', 'ഹ': 'l', 
-                    'ള': 'z', 'ഴ': '{', 'റ': '|', 'യ': 'e', 'ര': 'f', 'ല': 'g', // Fallbacks for remaining
-                    
-                    // Vowels
-                    'അ': 'A', 'ആ': 'B', 'ഇ': 'C', 'ഉ': 'D', 'ഊ': 'E', 'ഋ': 'F', 'എ': 'G', 'ഏ': 'H'
+                    'യ': 'h', 'ര': 'i', 'ല': 'j', 'വ': 'k', 'ശ': 'l',
+                    'ഷ': 'µ', 'സ': 'n', 'ഹ': 'o', 'ള': 'p', 'ഴ': 'q', 'റ': 'r',
+                    'അ': 'A', 'ആ': 'B', 'ഇ': 'C', 'ഈ': 'D', 'ഉ': 'E', '്': 'v'
                 };
 
                 let fmlOutput = "";
-                for (let i = 0; i < text.length; i++) {
-                    // If the character was already translated to ASCII in step 2, pass it through. 
-                    // Otherwise, map it, or leave it as is.
-                    fmlOutput += conjuncts[text[i]] ? text[i] : (fmlMap[text[i]] || text[i]);
-                }
+                for (let i = 0; i < text.length; i++) fmlOutput += fmlMap[text[i]] || text[i];
 
                 $('#fml-output-area').val(fmlOutput);
                 $('#fml-modal').fadeIn(200).css("display", "flex");
             });
+
+            $('#modal-copy-btn').on('click', function() {
+                navigator.clipboard.writeText($('#fml-output-area').val());
+                $(this).text('✅ Copied to Clipboard!');
+                setTimeout(() => $(this).text('📋 Copy to Clipboard'), 2000);
+            });
+
+            $('#close-modal').on('click', function() { $('#fml-modal').fadeOut(200); });
+
+            // Standard Copy
+            $('#btn-copy-uni').on('click', function() {
+                navigator.clipboard.writeText($editor.val());
+                let $btn = $(this);
+                $btn.html('✅ Copied!');
+                setTimeout(() => $btn.html('📋 Copy Unicode'), 2000);
+            });
+        });
     </script>
 </body>
 </html>
