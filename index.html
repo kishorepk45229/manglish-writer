@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Manglish Writer 2</title>
+    <title>Manglish Writer</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Chilanka&family=Gayathri:wght@400;700&family=Inter:wght@400;500;600&family=Manjari:wght@400;700&family=Noto+Sans+Malayalam:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manjari:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 </head>
 <body>
@@ -13,42 +13,20 @@
     <main class="app-container">
         <header class="app-header">
             <div class="brand">
-                <h1>എഴുത്ത് <span>Pro</span></h1>
+                <h1>എഴുത്ത് <span>Canvas</span></h1>
             </div>
             <div class="main-actions">
-                <button id="btn-export" class="action-btn">💾 Export HTML</button>
                 <button id="btn-copy" class="action-btn">📋 Copy</button>
                 <button id="btn-theme" class="icon-btn" title="Toggle Dark Mode">🌙</button>
             </div>
         </header>
 
         <section class="editor-wrapper">
-            <div class="formatting-toolbar">
-                <select id="font-selector" class="format-select" title="Choose Font">
-                    <option value="Manjari">Manjari (Modern)</option>
-                    <option value="Chilanka">Chilanka (Handwriting)</option>
-                    <option value="Gayathri">Gayathri (Formal/Print)</option>
-                    <option value="'Noto Sans Malayalam'">Noto Sans</option>
-                </select>
-                
-                <div class="divider"></div>
-                
-                <button class="format-btn" data-command="bold" title="Bold"><b>B</b></button>
-                <button class="format-btn" data-command="italic" title="Italic"><i>I</i></button>
-                <button class="format-btn" data-command="underline" title="Underline"><u>U</u></button>
-                
-                <div class="divider"></div>
-                
-                <button class="format-btn" data-command="justifyLeft" title="Align Left">Left</button>
-                <button class="format-btn" data-command="justifyCenter" title="Align Center">Center</button>
-                <button class="format-btn" data-command="justifyRight" title="Align Right">Right</button>
-            </div>
-
             <div class="suggestion-bar" id="suggestion-bar">
-                <span class="suggestion-placeholder">Type in Manglish (e.g., 'namaskaram') to see suggestions...</span>
+                <span class="suggestion-placeholder">Type English words here (e.g., 'namaskaram')...</span>
             </div>
 
-            <div id="editor" contenteditable="true" placeholder="Start typing here..."></div>
+            <textarea id="editor" placeholder="ഇവിടെ മലയാളം എഴുതാം..."></textarea>
         </section>
     </main>
 

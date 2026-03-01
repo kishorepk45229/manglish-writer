@@ -6,7 +6,6 @@
     --accent-color: #0066ff;
     --border-color: #e2e8f0;
     --radius: 12px;
-    --shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
 }
 
 [data-theme="dark"] {
@@ -15,16 +14,13 @@
     --text-primary: #f1f5f9;
     --text-secondary: #94a3b8;
     --border-color: #2e3642;
-    --shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
 }
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
     background-color: var(--bg-color);
     color: var(--text-primary);
     font-family: 'Inter', sans-serif;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    margin: 0;
     display: flex;
     justify-content: center;
     min-height: 100vh;
@@ -36,114 +32,80 @@ body {
     padding: 2rem;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1rem;
 }
 
-/* Header */
 .app-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: 1rem;
     border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
 }
 
-.brand h1 { font-family: 'Manjari', sans-serif; font-size: 1.8rem; }
-.brand span { font-family: 'Inter', sans-serif; font-weight: 400; color: var(--text-secondary); }
+.brand h1 { font-family: 'Manjari', sans-serif; margin: 0; }
+.brand span { color: var(--text-secondary); font-weight: 400; }
 
-.main-actions { display: flex; gap: 0.75rem; align-items: center; }
-
-button { cursor: pointer; border: none; background: none; color: var(--text-primary); transition: all 0.2s; }
+button { cursor: pointer; border: none; background: none; color: var(--text-primary); }
 
 .action-btn {
-    padding: 0.6rem 1rem;
+    padding: 8px 16px;
     border-radius: 8px;
-    background-color: var(--surface-color);
+    background: var(--surface-color);
     border: 1px solid var(--border-color);
-    font-size: 0.9rem;
     font-weight: 500;
 }
-.action-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
 
-.icon-btn { font-size: 1.2rem; padding: 0.5rem; }
-
-/* Editor & Toolbars */
 .editor-wrapper {
     background: var(--surface-color);
     border-radius: var(--radius);
-    box-shadow: var(--shadow);
     border: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    min-height: 65vh;
+    min-height: 60vh;
 }
 
-.formatting-toolbar {
-    display: flex;
-    align-items: center;
-    padding: 10px 15px;
-    border-bottom: 1px solid var(--border-color);
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.format-btn {
-    padding: 6px 10px;
-    border-radius: 6px;
-    font-weight: 500;
-}
-.format-btn:hover { background: var(--bg-color); }
-
-.format-select {
-    padding: 6px 10px;
-    border-radius: 6px;
-    border: 1px solid var(--border-color);
-    background-color: var(--surface-color);
-    color: var(--text-primary);
-    font-family: 'Inter', sans-serif;
-    outline: none;
-    cursor: pointer;
-}
-
-.divider { width: 1px; height: 20px; background: var(--border-color); margin: 0 5px; }
-
-/* Dictionary Bar */
+/* Suggestion Bar */
 .suggestion-bar {
     display: flex;
     gap: 10px;
-    padding: 10px 15px;
+    padding: 12px 15px;
     background: rgba(0, 102, 255, 0.05);
     border-bottom: 1px solid var(--border-color);
-    min-height: 50px;
+    min-height: 54px;
     align-items: center;
     overflow-x: auto;
 }
 
-.suggestion-placeholder { color: var(--text-secondary); font-size: 0.9rem; font-style: italic; }
+.suggestion-placeholder { color: var(--text-secondary); font-size: 0.95rem; }
 
 .suggestion-item {
     background: var(--surface-color);
     border: 1px solid var(--accent-color);
     color: var(--accent-color);
-    padding: 4px 14px;
+    padding: 6px 16px;
     border-radius: 20px;
     font-family: 'Manjari', sans-serif;
     font-size: 1.1rem;
     cursor: pointer;
     white-space: nowrap;
-    transition: all 0.2s;
 }
 
-.suggestion-item:hover { background: var(--accent-color); color: #ffffff; }
+.suggestion-item:hover, .suggestion-item.active {
+    background: var(--accent-color);
+    color: #fff;
+}
 
-/* Canvas */
+/* Textarea */
 #editor {
     flex-grow: 1;
-    padding: 25px;
-    font-family: 'Manjari', sans-serif; /* Default Font */
-    font-size: 1.3rem;
+    padding: 20px;
+    font-family: 'Manjari', sans-serif;
+    font-size: 1.4rem;
     line-height: 1.8;
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    resize: none;
     outline: none;
-    overflow-y: auto;
 }
-#editor[placeholder]:empty:before { content: attr(placeholder); color: var(--text-secondary); opacity: 0.5; }

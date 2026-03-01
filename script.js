@@ -1,158 +1,106 @@
 $(document).ready(function() {
     const $editor = $('#editor');
     const $suggestionBar = $('#suggestion-bar');
-    let currentEnglishWord = "";
-    let savedSelection = null;
 
-    // --- 1. Rich Text & Typography Formatting ---
-    $('.format-btn').on('click', function(e) {
-        e.preventDefault();
-        let command = $(this).data('command');
-        document.execCommand(command, false, null);
-        $editor.focus();
-    });
+    // Listen to every input in the textarea
+    $editor.on('input', function() {
+        let text = $editor.val();
+        let cursorPos = $editor[0].selectionStart;
 
-    $('#font-selector').on('change', function() {
-        let selectedFont = $(this).val();
-        document.execCommand('fontName', false, selectedFont);
-        $editor.focus();
-    });
-
-    // --- 2. Transliteration & Live Dictionary ---
-    $editor.on('keyup', function(e) {
-        // Ignore navigation/control keys
-        if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Shift", "Control", "Alt", "Meta", "Enter", "Backspace"].includes(e.key)) {
-            if (e.key === "Backspace") fetchCurrentWord();
-            return;
-        }
-
-        if (e.key === ' ') {
-            // Spacebar pressed: auto-select top suggestion if available
-            if (currentEnglishWord !== "") {
-                let topSuggestion = $('.suggestion-item').first().text();
-                if (topSuggestion) {
-                    replaceWord(topSuggestion + "\u00A0"); // Non-breaking space
-                }
-            }
-        } else {
-            // Normal typing: fetch active word
-            fetchCurrentWord();
-        }
-    });
-
-    function fetchCurrentWord() {
-        saveSelection();
-        let textBeforeCursor = getTextBeforeCursor();
-        let match = textBeforeCursor.match(/([a-zA-Z]+)$/); // Look for trailing English chars
+        // Extract the text right before the cursor
+        let textBeforeCursor = text.substring(0, cursorPos);
+        
+        // Find the active English word being typed
+        let match = textBeforeCursor.match(/([a-zA-Z]+)$/);
 
         if (match) {
-            currentEnglishWord = match[1];
-            fetchSuggestionsFromGoogle(currentEnglishWord);
+            let currentEnglishWord = match[1];
+            let startIdx = match.index;
+            fetchSuggestions(currentEnglishWord, startIdx, cursorPos);
         } else {
             clearSuggestions();
-            currentEnglishWord = "";
         }
-    }
+    });
 
-    function fetchSuggestionsFromGoogle(word) {
+    // Handle Spacebar to auto-select the first suggestion
+    $editor.on('keydown', function(e) {
+        if (e.key === ' ') {
+            let firstSuggestion = $('.suggestion-item').first().text();
+            
+            if (firstSuggestion) {
+                e.preventDefault(); // Stop the normal spacebar action
+                $('.suggestion-item').first().click(); // Simulate clicking the top word
+            }
+        }
+    });
+
+    function fetchSuggestions(word, startIdx, endIdx) {
         let apiUrl = `https://inputtools.google.com/request?text=${word}&itc=ml-t-i0-und&num=5&cp=0&cs=1&ie=utf-8&oe=utf-8`;
         
-        $.get(apiUrl, function(response) {
-            if (response[0] === 'SUCCESS') {
-                let suggestions = response[1][0][1];
-                renderSuggestions(suggestions);
+        $.ajax({
+            url: apiUrl,
+            method: 'GET',
+            success: function(response) {
+                if (response[0] === 'SUCCESS') {
+                    let suggestions = response[1][0][1];
+                    renderSuggestions(suggestions, startIdx, endIdx);
+                }
+            },
+            error: function() {
+                $suggestionBar.html('<span style="color:red;">Error loading dictionary. Check internet or use a local server.</span>');
             }
         });
     }
 
-    function renderSuggestions(words) {
+    function renderSuggestions(words, startIdx, endIdx) {
         $suggestionBar.empty();
-        words.forEach(word => {
-            let $badge = $(`<span class="suggestion-item">${word}</span>`);
-            $badge.on('click', function(e) {
-                e.preventDefault();
-                replaceWord(word + "\u00A0");
-                $editor.focus();
+        
+        words.forEach((word, index) => {
+            // Highlight the first word as the default (what happens when you press space)
+            let activeClass = index === 0 ? 'active' : '';
+            let $badge = $(`<span class="suggestion-item ${activeClass}">${word}</span>`);
+            
+            // Handle clicking a word
+            $badge.on('click', function() {
+                replaceWord(word, startIdx, endIdx);
             });
+            
             $suggestionBar.append($badge);
         });
     }
 
-    function clearSuggestions() {
-        $suggestionBar.html('<span class="suggestion-placeholder">Type in Manglish (e.g., \'namaskaram\') to see suggestions...</span>');
-    }
-
-    function replaceWord(malayalamText) {
-        restoreSelection();
+    function replaceWord(malayalamWord, startIdx, endIdx) {
+        let text = $editor.val();
         
-        // Delete the English letters just typed
-        for(let i=0; i < currentEnglishWord.length; i++) {
-            document.execCommand("delete", false, null);
-        }
+        // Piece the string back together with the new Malayalam word
+        let before = text.substring(0, startIdx);
+        let after = text.substring(endIdx);
         
-        // Insert the Malayalam text securely
-        document.execCommand("insertText", false, malayalamText);
+        // Add a space after the inserted word
+        $editor.val(before + malayalamWord + " " + after);
+        
+        // Move the cursor right after the newly inserted word and space
+        let newCursorPos = startIdx + malayalamWord.length + 1;
+        $editor[0].setSelectionRange(newCursorPos, newCursorPos);
+        
         clearSuggestions();
-        currentEnglishWord = "";
+        $editor.focus();
     }
 
-    // --- 3. Cursor Tracking Utilities ---
-    function getTextBeforeCursor() {
-        let selection = window.getSelection();
-        if (selection.rangeCount > 0) {
-            let range = selection.getRangeAt(0);
-            let preCaretRange = range.cloneRange();
-            preCaretRange.selectNodeContents($editor[0]);
-            preCaretRange.setEnd(range.endContainer, range.endOffset);
-            return preCaretRange.toString();
-        }
-        return "";
+    function clearSuggestions() {
+        $suggestionBar.html('<span class="suggestion-placeholder">Type English words here (e.g., \'namaskaram\')...</span>');
     }
 
-    function saveSelection() {
-        let sel = window.getSelection();
-        if (sel.getRangeAt && sel.rangeCount) {
-            savedSelection = sel.getRangeAt(0);
-        }
-    }
-
-    function restoreSelection() {
-        if (savedSelection) {
-            let sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(savedSelection);
-        }
-    }
-
-    // --- 4. Global UI Actions ---
+    // UI Utilities
     $('#btn-theme').on('click', function() {
         let $body = $('body');
-        if ($body.attr('data-theme') === 'dark') {
-            $body.removeAttr('data-theme');
-            $(this).text('🌙');
-        } else {
-            $body.attr('data-theme', 'dark');
-            $(this).text('☀️');
-        }
+        $body.attr('data-theme', $body.attr('data-theme') === 'dark' ? '' : 'dark');
     });
 
     $('#btn-copy').on('click', function() {
-        navigator.clipboard.writeText($editor[0].innerText);
+        navigator.clipboard.writeText($editor.val());
         let originalText = $(this).html();
         $(this).html('✅ Copied!');
         setTimeout(() => $(this).html(originalText), 2000);
-    });
-
-    $('#btn-export').on('click', function() {
-        let htmlContent = $editor.html();
-        let blob = new Blob([htmlContent], { type: "text/html;charset=utf-8" });
-        let url = URL.createObjectURL(blob);
-        let a = document.createElement('a');
-        a.href = url;
-        a.download = "draft_export.html";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
     });
 });
