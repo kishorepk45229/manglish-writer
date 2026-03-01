@@ -9,10 +9,10 @@
     <style>
         :root {
             /* Lemon Green Theme */
-            --accent-color: #a3e635; /* Fresh Lemon Green */
+            --accent-color: #a3e635; 
             --accent-hover: #84cc16;
-            --accent-light: #ecfccb; /* Pale lemon background */
-            --text-on-accent: #1a2e05; /* Dark text for contrast on green */
+            --accent-light: #ecfccb; 
+            --text-on-accent: #1a2e05; 
             
             --bg-main: #ffffff;
             --bg-sidebar: #fafafa;
@@ -174,19 +174,27 @@
             color: var(--text-secondary);
             font-size: 1.1rem;
             cursor: pointer;
-            padding: 6px;
+            padding: 6px 10px;
             border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .tool-btn:hover { background-color: var(--bg-sidebar); color: var(--text-primary); }
+        .tool-btn:hover, .tool-btn.active { 
+            background-color: var(--accent-light); 
+            color: var(--text-on-accent); 
+        }
+        
         .divider { width: 1px; height: 24px; background-color: var(--border-color); }
 
         .select-format {
             border: 1px solid transparent;
             font-family: 'Inter', sans-serif;
-            padding: 5px 8px;
+            padding: 6px 8px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 0.9rem;
+            color: var(--text-primary);
         }
         .select-format:hover { background-color: var(--bg-sidebar); }
 
@@ -228,9 +236,10 @@
             resize: none;
             outline: none;
             font-family: 'Manjari', sans-serif;
-            font-size: 1.4rem;
+            font-size: 18px;
             line-height: 1.8;
             color: var(--text-primary);
+            transition: font-weight 0.2s, font-style 0.2s, text-decoration 0.2s;
         }
 
         /* Bottom Status Bar */
@@ -311,21 +320,29 @@
     <main class="workspace">
         
         <div class="toolbar">
-            <button class="tool-btn">↩️</button>
-            <button class="tool-btn">↪️</button>
+            <button class="tool-btn" id="btn-undo" title="Undo">&#x21BA;</button>
+            <button class="tool-btn" id="btn-redo" title="Redo">&#x21BB;</button>
+            
             <div class="divider"></div>
-            <select class="select-format">
-                <option>Default Font</option>
+            
+            <select class="select-format" id="font-family-select">
+                <option value="'Manjari', sans-serif">Manjari</option>
+                <option value="'Chilanka', cursive">Chilanka</option>
+                <option value="'Gayathri', sans-serif">Gayathri</option>
             </select>
-            <select class="select-format">
-                <option>12</option>
-                <option>14</option>
-                <option>16</option>
+            
+            <select class="select-format" id="font-size-select">
+                <option value="16">16px</option>
+                <option value="18" selected>18px</option>
+                <option value="22">22px</option>
+                <option value="26">26px</option>
             </select>
+            
             <div class="divider"></div>
-            <button class="tool-btn"><b>B</b></button>
-            <button class="tool-btn"><i>I</i></button>
-            <button class="tool-btn"><u>U</u></button>
+            
+            <button class="tool-btn" id="btn-bold" title="Bold"><b>B</b></button>
+            <button class="tool-btn" id="btn-italic" title="Italic"><i>I</i></button>
+            <button class="tool-btn" id="btn-underline" title="Underline"><u>U</u></button>
         </div>
 
         <div class="suggestion-bar" id="suggestion-bar">
@@ -358,7 +375,51 @@
             let currentMatchStart = -1;
             let currentMatchEnd = -1;
 
-            // --- 1. Real-time Typing & Dictionary ---
+            // --- 1. Custom History for Undo/Redo ---
+            let textHistory = [""];
+            let historyIndex = 0;
+
+            function saveHistory() {
+                let currentVal = $editor.val();
+                if (currentVal !== textHistory[historyIndex]) {
+                    textHistory = textHistory.slice(0, historyIndex + 1);
+                    textHistory.push(currentVal);
+                    historyIndex++;
+                }
+            }
+
+            $('#btn-undo').on('click', function() {
+                if (historyIndex > 0) {
+                    historyIndex--;
+                    $editor.val(textHistory[historyIndex]);
+                }
+            });
+
+            $('#btn-redo').on('click', function() {
+                if (historyIndex < textHistory.length - 1) {
+                    historyIndex++;
+                    $editor.val(textHistory[historyIndex]);
+                }
+            });
+
+            // --- 2. Toolbar Formatting Logic ---
+            $('#font-family-select').on('change', function() { $editor.css('font-family', $(this).val()); });
+            $('#font-size-select').on('change', function() { $editor.css('font-size', $(this).val() + 'px'); });
+            
+            $('#btn-bold').on('click', function() { 
+                $(this).toggleClass('active'); 
+                $editor.css('font-weight', $(this).hasClass('active') ? 'bold' : 'normal'); 
+            });
+            $('#btn-italic').on('click', function() { 
+                $(this).toggleClass('active'); 
+                $editor.css('font-style', $(this).hasClass('active') ? 'italic' : 'normal'); 
+            });
+            $('#btn-underline').on('click', function() { 
+                $(this).toggleClass('active'); 
+                $editor.css('text-decoration', $(this).hasClass('active') ? 'underline' : 'none'); 
+            });
+
+            // --- 3. Real-time Typing & Dictionary ---
             $editor.on('input', function() {
                 let text = $editor.val();
                 let cursorPos = $editor[0].selectionStart;
@@ -372,6 +433,13 @@
                 } else {
                     clearSuggestions();
                 }
+            });
+
+            // Save history when typing stops (basic debounce)
+            let typingTimer;
+            $editor.on('keyup', function() {
+                clearTimeout(typingTimer);
+                typingTimer = setTimeout(saveHistory, 1000); 
             });
 
             $editor.on('keydown', function(e) {
@@ -416,6 +484,7 @@
                 let newPos = currentMatchStart + malayalamWord.length + 1;
                 $editor[0].setSelectionRange(newPos, newPos);
                 clearSuggestions();
+                saveHistory();
                 $editor.focus();
             }
 
@@ -423,29 +492,29 @@
                 $suggestionBar.html('<span class="suggestion-placeholder">Type in English (e.g., \'namaskaram\')...</span>');
             }
 
-            // --- 2. FML-TT Conversion Engine (The "കിഷോർ" Fix) ---
+            // --- 4. Robust FML-TT Conversion Engine ---
             $('#btn-copy-fml').on('click', function() {
                 let text = $editor.val();
                 
-                // STAGE 1: Split compound vowels into left and right components
+                // STAGE 1: Safely split compound vowels into left and right components
                 text = text.replace(/ൊ/g, "ൊ"); 
                 text = text.replace(/ോ/g, "ോ"); 
                 text = text.replace(/ൌ/g, "ൌ"); 
 
-                // STAGE 2: Physically move left-vowels BEFORE the preceding consonant group
-                // This ensures 'ി' in 'കി' becomes 'ിക', rendering perfectly in DTP.
-                const consGroup = "([ക-ഹൺ-ൿ](?:്[ക-ഹൺ-ൿ])*)"; // Matches consonants + conjuncts
-                const leftVowels = "([െേൈിീ])"; // Matches left-side modifiers
+                // STAGE 2: The Core DTP Fix - Move left-vowels BEFORE the preceding consonant group
+                // This targets the vowel (ി, ീ, െ, േ, ൈ) and shifts it to the left side of the consonant.
+                // E.g., കി (ക + ി) mathematically becomes ിക. 
+                const consGroup = "([ക-ഹളഴറൺ-ൿ](?:്[ക-ഹളഴറൺ-ൿ])*)"; 
+                const leftVowels = "([െേൈിീ])"; 
                 const regexMove = new RegExp(consGroup + leftVowels, "g");
                 text = text.replace(regexMove, "$2$1");
 
-                // STAGE 3: Convert characters to FML ASCII Mapping
-                // Note: You can tweak these specific ASCII characters to perfectly match your DTP font's keyboard layout.
+                // STAGE 3: Convert Characters to Standard FML / ML-TT Keyboard Layout
                 const fmlMap = {
-                    // Left Vowels (already moved to the correct position)
+                    // Left Vowels (already relocated)
                     'ി': 'n', 'ീ': 'o', 'െ': 's', 'േ': 't', 'ൈ': 'S',
                     // Right/Bottom Vowels
-                    'ാ': 'm', 'ു': 'u', 'ൂ': 'w', 'ൃ': 'r', 'ൗ': 'w',
+                    'ാ': 'm', 'ു': 'p', 'ൂ': 'q', 'ൃ': 'r', 'ൗ': 'w',
                     // Chillus
                     'ർ': 'À', 'ൽ': 'Â', 'ൾ': 'Ä', 'ൺ': 'Æ', 'ൻ': '³',
                     // Consonants
