@@ -1,86 +1,98 @@
 $(document).ready(function() {
     const $editor = $('#editor');
     const $suggestionBar = $('#suggestion-bar');
+    let currentMatchStart = -1;
+    let currentMatchEnd = -1;
 
-    // Listen to every input in the textarea
+    // --- 1. Real-time Typing Engine ---
     $editor.on('input', function() {
         let text = $editor.val();
         let cursorPos = $editor[0].selectionStart;
-
-        // Extract the text right before the cursor
         let textBeforeCursor = text.substring(0, cursorPos);
         
-        // Find the active English word being typed
         let match = textBeforeCursor.match(/([a-zA-Z]+)$/);
 
         if (match) {
             let currentEnglishWord = match[1];
-            let startIdx = match.index;
-            fetchSuggestions(currentEnglishWord, startIdx, cursorPos);
+            currentMatchStart = match.index;
+            currentMatchEnd = cursorPos;
+            fetchSuggestions(currentEnglishWord);
         } else {
             clearSuggestions();
         }
     });
 
-    // Handle Spacebar to auto-select the first suggestion
+    // --- 2. Keyboard Navigation (Enter, Space, Arrows) ---
     $editor.on('keydown', function(e) {
-        if (e.key === ' ') {
-            let firstSuggestion = $('.suggestion-item').first().text();
+        let $suggestions = $('.suggestion-item');
+        let $active = $('.suggestion-item.active');
+
+        // If suggestions are on screen, hijack the keys
+        if ($suggestions.length > 0) {
             
-            if (firstSuggestion) {
-                e.preventDefault(); // Stop the normal spacebar action
-                $('.suggestion-item').first().click(); // Simulate clicking the top word
+            // ENTER or SPACE: Insert the active word
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault(); // Stop newline or regular space
+                if ($active.length) {
+                    $active.click(); 
+                }
+            } 
+            // RIGHT ARROW: Move selection right
+            else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                let $next = $active.next('.suggestion-item');
+                if ($next.length) {
+                    $active.removeClass('active');
+                    $next.addClass('active');
+                }
+            } 
+            // LEFT ARROW: Move selection left
+            else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                let $prev = $active.prev('.suggestion-item');
+                if ($prev.length) {
+                    $active.removeClass('active');
+                    $prev.addClass('active');
+                }
             }
         }
     });
 
-    function fetchSuggestions(word, startIdx, endIdx) {
+    // --- 3. Dictionary API & Rendering ---
+    function fetchSuggestions(word) {
         let apiUrl = `https://inputtools.google.com/request?text=${word}&itc=ml-t-i0-und&num=5&cp=0&cs=1&ie=utf-8&oe=utf-8`;
         
-        $.ajax({
-            url: apiUrl,
-            method: 'GET',
-            success: function(response) {
-                if (response[0] === 'SUCCESS') {
-                    let suggestions = response[1][0][1];
-                    renderSuggestions(suggestions, startIdx, endIdx);
-                }
-            },
-            error: function() {
-                $suggestionBar.html('<span style="color:red;">Error loading dictionary. Check internet or use a local server.</span>');
+        $.get(apiUrl, function(response) {
+            if (response[0] === 'SUCCESS') {
+                renderSuggestions(response[1][0][1]);
             }
         });
     }
 
-    function renderSuggestions(words, startIdx, endIdx) {
+    function renderSuggestions(words) {
         $suggestionBar.empty();
         
         words.forEach((word, index) => {
-            // Highlight the first word as the default (what happens when you press space)
+            // Auto-select the first word
             let activeClass = index === 0 ? 'active' : '';
             let $badge = $(`<span class="suggestion-item ${activeClass}">${word}</span>`);
             
-            // Handle clicking a word
             $badge.on('click', function() {
-                replaceWord(word, startIdx, endIdx);
+                replaceWord(word);
             });
             
             $suggestionBar.append($badge);
         });
     }
 
-    function replaceWord(malayalamWord, startIdx, endIdx) {
+    function replaceWord(malayalamWord) {
         let text = $editor.val();
+        let before = text.substring(0, currentMatchStart);
+        let after = text.substring(currentMatchEnd);
         
-        // Piece the string back together with the new Malayalam word
-        let before = text.substring(0, startIdx);
-        let after = text.substring(endIdx);
-        
-        // Add a space after the inserted word
         $editor.val(before + malayalamWord + " " + after);
         
-        // Move the cursor right after the newly inserted word and space
-        let newCursorPos = startIdx + malayalamWord.length + 1;
+        let newCursorPos = currentMatchStart + malayalamWord.length + 1;
         $editor[0].setSelectionRange(newCursorPos, newCursorPos);
         
         clearSuggestions();
@@ -89,18 +101,55 @@ $(document).ready(function() {
 
     function clearSuggestions() {
         $suggestionBar.html('<span class="suggestion-placeholder">Type English words here (e.g., \'namaskaram\')...</span>');
+        currentMatchStart = -1;
+        currentMatchEnd = -1;
     }
 
-    // UI Utilities
+    // --- 4. Copy & DTP Conversion Pipeline ---
+    
+    // Standard Unicode Copy
+    $('#btn-copy-unicode').on('click', function() {
+        copyToClipboard($editor.val(), $(this), "📋 Copy Unicode");
+    });
+
+    // FML-TT Copy Pipeline
+    $('#btn-copy-fml').on('click', function() {
+        let unicodeText = $editor.val();
+        let fmlText = convertUnicodeToFML(unicodeText);
+        copyToClipboard(fmlText, $(this), "📋 FML-TT");
+    });
+
+    // ML-TT Copy Pipeline
+    $('#btn-copy-ml').on('click', function() {
+        let unicodeText = $editor.val();
+        let mlText = convertUnicodeToML(unicodeText);
+        copyToClipboard(mlText, $(this), "📋 ML-TT");
+    });
+
+    function copyToClipboard(text, $btnElement, originalText) {
+        navigator.clipboard.writeText(text).then(() => {
+            $btnElement.html('✅ Copied!');
+            setTimeout(() => $btnElement.html(originalText), 2000);
+        });
+    }
+
+    // --- Font Conversion Logic Hub ---
+    function convertUnicodeToFML(text) {
+        // PASTE YOUR UNICODE-TO-FML MAPPING ARRAY LOGIC HERE
+        // Example structure:
+        // text = text.replace(/ക/g, "I"); 
+        // text = text.replace(/ഖ/g, "J");
+        return text; // Currently returns raw text until you paste your map
+    }
+
+    function convertUnicodeToML(text) {
+        // PASTE YOUR UNICODE-TO-ML MAPPING ARRAY LOGIC HERE
+        return text; 
+    }
+
+    // Dark Mode
     $('#btn-theme').on('click', function() {
         let $body = $('body');
         $body.attr('data-theme', $body.attr('data-theme') === 'dark' ? '' : 'dark');
-    });
-
-    $('#btn-copy').on('click', function() {
-        navigator.clipboard.writeText($editor.val());
-        let originalText = $(this).html();
-        $(this).html('✅ Copied!');
-        setTimeout(() => $(this).html(originalText), 2000);
     });
 });

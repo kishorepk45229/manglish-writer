@@ -109,3 +109,22 @@ button { cursor: pointer; border: none; background: none; color: var(--text-prim
     resize: none;
     outline: none;
 }
+/* Add this to your existing style.css */
+.dtp-btn {
+    background: rgba(0, 102, 255, 0.1);
+    border-color: rgba(0, 102, 255, 0.3);
+    color: var(--accent-color);
+}
+
+.dtp-btn:hover {
+    background: var(--accent-color);
+    color: #fff;
+}
+
+/* Ensure the active suggestion pops out */
+.suggestion-item.active {
+    background: var(--accent-color);
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 102, 255, 0.3);
+    transform: scale(1.05);
+}
