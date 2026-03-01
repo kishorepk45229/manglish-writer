@@ -295,7 +295,7 @@
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <aside class="sidebar" id="sidebar">
-        <div class="brand"><div class="brand-logo">തൂ</div> Thooval</div>
+        <div class="brand"><div class="brand-logo">അ</div> Thooval</div>
         <button class="new-file-btn"><span>➕</span> New File</button>
         <div class="file-list">
             <div class="list-header">Today</div>
@@ -575,17 +575,13 @@
                 text = text.replace(/\u0D4B/g, "\u0D47\u0D3E"); // ോ -> േ + ാ
                 text = text.replace(/\u0D4C/g, "\u0D46\u0D57"); // ൌ -> െ + ൗ
 
-                // 2. Pre-map User-Provided Koottaksharangal (Conjuncts)
+                // 2. Pre-map Koottaksharangal (Conjuncts) & Modifiers FIRST
+                // താങ്കൾ നൽകിയ ക്ക്വ = ¡z ചേർത്തിരിക്കുന്നു 
                 const conjuncts = {
-                    'ക്ക': '¡', 'ക്ല': '¢', 'ക്ഷ': '£', 'ഗ്ഗ': '¤', 'ഗ്ന': '¥',
-                    'ങ്ങ': '§', 'ച്ച': '¨', 'ജ്ജ': '©', 'ഞ്ഞ': 'ª', 'ട്ട': '«',
-                    'ണ്ണ': '¬', 'ത്ത': '¯', 'ന്ന': '°', 'ന്മ': '±', 'പ്പ': '²',
-                    'ബ്ബ': '³', 'ഭ്ഭ': '´', 'മ്മ': 'µ', 'യ്യ': 'Õ', 'ല്ല': 'ñ',
-                    'വ്വ': 'õ', 'ശ്ശ': 'ô', 'സ്സ': '÷', 'ള്ള': 'û', 'റ്റ': '‰',
-                    'ങ്ക': '¦', 'ഞ്ച': '©', 'ണ്ട': '¾', 'ന്ത': '´', 'മ്പ': '¼',
-                    'ക്യ': 'Iy', 'ക്ര': '{I', 'ക്വ': 'I്', 'ച്ഛ': 'b', 'ജ്ഞ': 'P',
-                    'ഡ്ഡ': '«', 'ദ്ധ': '²', 'സ്ഥ': 'Ø', 'സ്ക': 'kv', 'സ്ത': 'kvX',
-                    'സ്ന': 'kv\\', 'സ്പ': 'kv]', 'സ്മ': 'kvv', 'സ്വ': 'kzt'
+                    'ക്ക': '¡', 'ങ്ക': '¢', 'ങ്ങ': '£', 'ച്ച': '¤', 'ഞ്ച': '¥', 
+                    'ഞ്ഞ': '¦', 'ട്ട': '§', 'ണ്ട': 'ï', 'ണ്ണ': '©', 'ത്ത': 'ª', 
+                    'ന്ത': '«', 'ന്ന': '¬', 'പ്പ': '­', 'മ്പ': '®', 'മ്മ': '¯', 
+                    'ല്ല': 'Ã', 'ള്ള': 'Å', '്വ': 'z' 
                 };
                 
                 for (let [ml, ascii] of Object.entries(conjuncts)) {
@@ -600,8 +596,8 @@
                 // 4. Complete FML/Manglish Character Map (Single Letters)
                 const fmlMap = {
                     '\u0D46': 's', '\u0D47': 't', '\u0D48': 'u', // Left: െ, േ, ൈ
-                    '\u0D3F': 'n', '\u0D40': 'o', '\u0D41': 'p', '\u0D42': 'q', '\u0D43': 'r', '\u0D3E': 'm', '\u0D57': 'w', // Right: ി, ീ, ു, ൂ, ൃ, ാ, ൗ
-                    '\u0D4D': 'v', '\u0D02': 'x', '\u0D03': 'y', // Virama, Anusvaram, Visargam
+                    '\u0D3F': 'n', '\u0D40': 'o', '\u0D41': 'p', '\u0D42': 'q', '\u0D43': 'r', '\u0D3E': 'm', '\u0D57': 'u', // Right: ി, ീ, ു, ൂ, ൃ, ാ, ൗ (കം=Iw, കൗ=Iu മാറ്റങ്ങൾ ഇവിടെ വരുത്തിയിരിക്കുന്നു)
+                    '\u0D4D': 'v', '\u0D02': 'w', '\u0D03': 'x', // Virama(്)=v, Anusvaram(ം)=w, Visargam(ഃ)=x
                     
                     'ർ': 'À', 'ൽ': 'Â', 'ൾ': 'Ä', 'ൺ': 'Æ', 'ൻ': '³', 
                     
@@ -619,7 +615,6 @@
 
                 let fmlOutput = "";
                 for (let i = 0; i < text.length; i++) {
-                    // Only map if it's a single character not already converted by the conjunct mapping
                     let char = text[i];
                     fmlOutput += (char.length === 1 && fmlMap[char]) ? fmlMap[char] : char;
                 }
