@@ -1,168 +1,158 @@
 $(document).ready(function() {
     const $editor = $('#editor');
-    const DRAFT_KEY = 'malayalam_draft_content';
-    const THEME_KEY = 'app_theme_preference';
+    const $suggestionBar = $('#suggestion-bar');
+    let currentEnglishWord = "";
+    let savedSelection = null;
 
-    // --- 1. Initialization & State ---
-    
-    // Load saved text
-    if (localStorage.getItem(DRAFT_KEY)) {
-        $editor.val(localStorage.getItem(DRAFT_KEY));
-        updateCharCount();
-    }
+    // --- 1. Rich Text & Typography Formatting ---
+    $('.format-btn').on('click', function(e) {
+        e.preventDefault();
+        let command = $(this).data('command');
+        document.execCommand(command, false, null);
+        $editor.focus();
+    });
 
-    // Load theme
-    if (localStorage.getItem(THEME_KEY) === 'dark') {
-        $('body').attr('data-theme', 'dark');
-        $('#btn-theme').text('☀️');
-    }
+    $('#font-selector').on('change', function() {
+        let selectedFont = $(this).val();
+        document.execCommand('fontName', false, selectedFont);
+        $editor.focus();
+    });
 
-    // --- 2. Transliteration Engine (Manglish to Malayalam) ---
-    
-    // Listen for Space or Enter key
+    // --- 2. Transliteration & Live Dictionary ---
     $editor.on('keyup', function(e) {
-        updateCharCount();
-        saveDraft();
+        // Ignore navigation/control keys
+        if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Shift", "Control", "Alt", "Meta", "Enter", "Backspace"].includes(e.key)) {
+            if (e.key === "Backspace") fetchCurrentWord();
+            return;
+        }
 
-        if (e.key === ' ' || e.key === 'Enter') {
-            processTransliteration(this);
+        if (e.key === ' ') {
+            // Spacebar pressed: auto-select top suggestion if available
+            if (currentEnglishWord !== "") {
+                let topSuggestion = $('.suggestion-item').first().text();
+                if (topSuggestion) {
+                    replaceWord(topSuggestion + "\u00A0"); // Non-breaking space
+                }
+            }
+        } else {
+            // Normal typing: fetch active word
+            fetchCurrentWord();
         }
     });
 
-    function processTransliteration(textarea) {
-        let text = textarea.value;
-        let cursorPos = textarea.selectionStart;
-
-        // Find the last word typed before the cursor
-        let textBeforeCursor = text.substring(0, cursorPos);
-        
-        // Match the last English word (letters only) before the space/enter
-        let match = textBeforeCursor.match(/([a-zA-Z]+)([\s\n]*)$/);
+    function fetchCurrentWord() {
+        saveSelection();
+        let textBeforeCursor = getTextBeforeCursor();
+        let match = textBeforeCursor.match(/([a-zA-Z]+)$/); // Look for trailing English chars
 
         if (match) {
-            let englishWord = match[1];
-            let trailingSpace = match[2];
-            let wordStartPos = match.index;
-
-            // Call Google Input Tools API for Malayalam (ml-t-i0-und)
-            let apiUrl = `https://inputtools.google.com/request?text=${englishWord}&itc=ml-t-i0-und&num=1&cp=0&cs=1&ie=utf-8&oe=utf-8`;
-
-            $.get(apiUrl, function(response) {
-                if (response[0] === 'SUCCESS' && response[1][0][1].length > 0) {
-                    let malayalamWord = response[1][0][1][0]; // Get top suggestion
-
-                    // Reconstruct the text
-                    let newTextBeforeCursor = textBeforeCursor.substring(0, wordStartPos) + malayalamWord + trailingSpace;
-                    
-                    textarea.value = newTextBeforeCursor + text.substring(cursorPos);
-                    
-                    // Restore cursor position to exactly after the newly inserted word and space
-                    let newCursorPos = newTextBeforeCursor.length;
-                    textarea.setSelectionRange(newCursorPos, newCursorPos);
-                    
-                    saveDraft();
-                }
-            }).fail(function() {
-                console.error("Transliteration API failed.");
-            });
+            currentEnglishWord = match[1];
+            fetchSuggestionsFromGoogle(currentEnglishWord);
+        } else {
+            clearSuggestions();
+            currentEnglishWord = "";
         }
     }
 
-    // --- 3. UI Features & Utilities ---
+    function fetchSuggestionsFromGoogle(word) {
+        let apiUrl = `https://inputtools.google.com/request?text=${word}&itc=ml-t-i0-und&num=5&cp=0&cs=1&ie=utf-8&oe=utf-8`;
+        
+        $.get(apiUrl, function(response) {
+            if (response[0] === 'SUCCESS') {
+                let suggestions = response[1][0][1];
+                renderSuggestions(suggestions);
+            }
+        });
+    }
 
-    // Dark Mode Toggle
+    function renderSuggestions(words) {
+        $suggestionBar.empty();
+        words.forEach(word => {
+            let $badge = $(`<span class="suggestion-item">${word}</span>`);
+            $badge.on('click', function(e) {
+                e.preventDefault();
+                replaceWord(word + "\u00A0");
+                $editor.focus();
+            });
+            $suggestionBar.append($badge);
+        });
+    }
+
+    function clearSuggestions() {
+        $suggestionBar.html('<span class="suggestion-placeholder">Type in Manglish (e.g., \'namaskaram\') to see suggestions...</span>');
+    }
+
+    function replaceWord(malayalamText) {
+        restoreSelection();
+        
+        // Delete the English letters just typed
+        for(let i=0; i < currentEnglishWord.length; i++) {
+            document.execCommand("delete", false, null);
+        }
+        
+        // Insert the Malayalam text securely
+        document.execCommand("insertText", false, malayalamText);
+        clearSuggestions();
+        currentEnglishWord = "";
+    }
+
+    // --- 3. Cursor Tracking Utilities ---
+    function getTextBeforeCursor() {
+        let selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+            let range = selection.getRangeAt(0);
+            let preCaretRange = range.cloneRange();
+            preCaretRange.selectNodeContents($editor[0]);
+            preCaretRange.setEnd(range.endContainer, range.endOffset);
+            return preCaretRange.toString();
+        }
+        return "";
+    }
+
+    function saveSelection() {
+        let sel = window.getSelection();
+        if (sel.getRangeAt && sel.rangeCount) {
+            savedSelection = sel.getRangeAt(0);
+        }
+    }
+
+    function restoreSelection() {
+        if (savedSelection) {
+            let sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(savedSelection);
+        }
+    }
+
+    // --- 4. Global UI Actions ---
     $('#btn-theme').on('click', function() {
         let $body = $('body');
         if ($body.attr('data-theme') === 'dark') {
             $body.removeAttr('data-theme');
             $(this).text('🌙');
-            localStorage.setItem(THEME_KEY, 'light');
         } else {
             $body.attr('data-theme', 'dark');
             $(this).text('☀️');
-            localStorage.setItem(THEME_KEY, 'dark');
         }
     });
 
-    // Copy Text
     $('#btn-copy').on('click', function() {
-        const text = $editor.val();
-        if(!text) return;
-
-        navigator.clipboard.writeText(text).then(() => {
-            let $btn = $(this);
-            let originalHtml = $btn.html();
-            $btn.html('<span class="icon">✅</span> Copied!');
-            setTimeout(() => $btn.html(originalHtml), 2000);
-        });
+        navigator.clipboard.writeText($editor[0].innerText);
+        let originalText = $(this).html();
+        $(this).html('✅ Copied!');
+        setTimeout(() => $(this).html(originalText), 2000);
     });
 
-    // Clear Canvas
-    $('#btn-clear').on('click', function() {
-        if(confirm("Are you sure you want to clear the canvas?")) {
-            $editor.val('');
-            saveDraft();
-            updateCharCount();
-        }
+    $('#btn-export').on('click', function() {
+        let htmlContent = $editor.html();
+        let blob = new Blob([htmlContent], { type: "text/html;charset=utf-8" });
+        let url = URL.createObjectURL(blob);
+        let a = document.createElement('a');
+        a.href = url;
+        a.download = "draft_export.html";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     });
-
-    // --- 4. Voice Typing (Web Speech API) ---
-    let recognition;
-    if ('webkitSpeechRecognition' in window) {
-        recognition = new webkitSpeechRecognition();
-        recognition.lang = 'ml-IN'; // Malayalam
-        recognition.continuous = true;
-        recognition.interimResults = true;
-
-        recognition.onstart = function() {
-            $('#btn-voice').addClass('active').html('<span class="icon">🛑</span> Stop');
-        };
-
-        recognition.onresult = function(event) {
-            let finalTranscript = '';
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-                if (event.results[i].isFinal) {
-                    finalTranscript += event.results[i][0].transcript;
-                }
-            }
-            if(finalTranscript) {
-                let currentVal = $editor.val();
-                $editor.val(currentVal + (currentVal.endsWith(' ') ? '' : ' ') + finalTranscript + ' ');
-                updateCharCount();
-                saveDraft();
-            }
-        };
-
-        recognition.onerror = function(event) {
-            console.error("Speech recognition error", event.error);
-        };
-
-        recognition.onend = function() {
-            $('#btn-voice').removeClass('active').html('<span class="icon">🎤</span> Voice');
-        };
-    } else {
-        $('#btn-voice').hide(); // Hide if browser doesn't support it
-    }
-
-    $('#btn-voice').on('click', function() {
-        if (!recognition) return;
-        if ($(this).hasClass('active')) {
-            recognition.stop();
-        } else {
-            recognition.start();
-        }
-    });
-
-    // --- Helpers ---
-    function saveDraft() {
-        localStorage.setItem(DRAFT_KEY, $editor.val());
-        $('#save-status').text('Saved just now').stop(true, true).fadeIn().delay(2000).fadeOut('slow', function() {
-            $(this).text('All changes saved locally').fadeIn('slow');
-        });
-    }
-
-    function updateCharCount() {
-        let length = $editor.val().length;
-        $('#char-count').text(length + ' characters');
-    }
 });
