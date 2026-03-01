@@ -1,204 +1,211 @@
 $(document).ready(function() {
     const $editor = $('#editor');
     const $suggestionBar = $('#suggestion-bar');
-    let currentMatchStart = -1;
-    let currentMatchEnd = -1;
+    let activeEnglishWord = "";
 
     // ==========================================
-    // 1. Real-time Typing Engine
+    // 1. Rich Text Formatting Support
     // ==========================================
-    $editor.on('input', function() {
-        let text = $editor.val();
-        let cursorPos = $editor[0].selectionStart;
-        let textBeforeCursor = text.substring(0, cursorPos);
+    $('.format-btn').on('click', function(e) {
+        e.preventDefault();
+        document.execCommand($(this).data('command'), false, null);
+        $editor.focus();
+    });
+
+    $('#font-selector').on('change', function() {
+        document.execCommand('fontName', false, $(this).val());
+        $editor.focus();
+    });
+
+    // ==========================================
+    // 2. Real-time ContentEditable Dictionary
+    // ==========================================
+    $editor.on('keyup', function(e) {
+        // Ignore navigation keys
+        if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Shift", "Control", "Meta"].includes(e.key)) return;
+
+        let word = getWordBeforeCaret();
         
-        // Find the active English word being typed
-        let match = textBeforeCursor.match(/([a-zA-Z]+)$/);
-
-        if (match) {
-            let currentEnglishWord = match[1];
-            currentMatchStart = match.index;
-            currentMatchEnd = cursorPos;
-            fetchSuggestions(currentEnglishWord);
+        if (word && /^[a-zA-Z]+$/.test(word)) {
+            activeEnglishWord = word;
+            fetchSuggestions(word);
         } else {
             clearSuggestions();
+            activeEnglishWord = "";
         }
     });
 
-    // ==========================================
-    // 2. Keyboard Navigation (Enter, Space, Arrows)
-    // ==========================================
     $editor.on('keydown', function(e) {
-        let $suggestions = $('.suggestion-item');
         let $active = $('.suggestion-item.active');
-
-        // If suggestions are on screen, hijack the specific keys
-        if ($suggestions.length > 0) {
-            
-            // ENTER or SPACE: Insert the active word
+        if ($('.suggestion-item').length > 0) {
             if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault(); // Stop newline or regular space
-                if ($active.length) {
-                    $active.click(); 
-                }
-            } 
-            // RIGHT ARROW: Move selection right
-            else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                if ($active.length) replaceWordInEditor($active.text() + "\u00A0"); // \u00A0 is non-breaking space
+            } else if (e.key === 'ArrowRight') {
                 e.preventDefault();
                 let $next = $active.next('.suggestion-item');
-                if ($next.length) {
-                    $active.removeClass('active');
-                    $next.addClass('active');
-                }
-            } 
-            // LEFT ARROW: Move selection left
-            else if (e.key === 'ArrowLeft') {
+                if ($next.length) { $active.removeClass('active'); $next.addClass('active'); }
+            } else if (e.key === 'ArrowLeft') {
                 e.preventDefault();
                 let $prev = $active.prev('.suggestion-item');
-                if ($prev.length) {
-                    $active.removeClass('active');
-                    $prev.addClass('active');
-                }
+                if ($prev.length) { $active.removeClass('active'); $prev.addClass('active'); }
             }
         }
     });
 
-    // ==========================================
-    // 3. Dictionary API & Rendering
-    // ==========================================
-    function fetchSuggestions(word) {
-        let apiUrl = `https://inputtools.google.com/request?text=${word}&itc=ml-t-i0-und&num=5&cp=0&cs=1&ie=utf-8&oe=utf-8`;
+    function getWordBeforeCaret() {
+        let sel = window.getSelection();
+        if (!sel.rangeCount) return null;
+        let range = sel.getRangeAt(0);
+        let node = range.startContainer;
+        if (node.nodeType === 3) { // Text node
+            let text = node.textContent.substring(0, range.startOffset);
+            let match = text.match(/([a-zA-Z]+)$/);
+            return match ? match[1] : null;
+        }
+        return null;
+    }
+
+    function replaceWordInEditor(malayalamText) {
+        if (!activeEnglishWord) return;
         
-        $.get(apiUrl, function(response) {
-            if (response[0] === 'SUCCESS') {
-                renderSuggestions(response[1][0][1]);
-            }
+        // Use native execCommand to delete the English characters safely
+        for(let i = 0; i < activeEnglishWord.length; i++) {
+            document.execCommand("delete", false, null);
+        }
+        // Insert Malayalam text keeping current HTML styles (bold, etc.) intact
+        document.execCommand("insertText", false, malayalamText);
+        
+        clearSuggestions();
+        activeEnglishWord = "";
+    }
+
+    function fetchSuggestions(word) {
+        $.get(`https://inputtools.google.com/request?text=${word}&itc=ml-t-i0-und&num=5&cp=0&cs=1&ie=utf-8&oe=utf-8`, function(res) {
+            if (res[0] === 'SUCCESS') renderSuggestions(res[1][0][1]);
         });
     }
 
     function renderSuggestions(words) {
         $suggestionBar.empty();
-        
-        words.forEach((word, index) => {
-            // Auto-select the first word so Space/Enter grabs it instantly
-            let activeClass = index === 0 ? 'active' : '';
-            let $badge = $(`<span class="suggestion-item ${activeClass}">${word}</span>`);
-            
-            $badge.on('click', function() {
-                replaceWord(word);
-            });
-            
+        words.forEach((word, i) => {
+            let $badge = $(`<span class="suggestion-item ${i === 0 ? 'active' : ''}">${word}</span>`);
+            $badge.on('click', function() { replaceWordInEditor(word + "\u00A0"); });
             $suggestionBar.append($badge);
         });
     }
 
-    function replaceWord(malayalamWord) {
-        let text = $editor.val();
-        let before = text.substring(0, currentMatchStart);
-        let after = text.substring(currentMatchEnd);
-        
-        // Piece string back together with the selected word and a trailing space
-        $editor.val(before + malayalamWord + " " + after);
-        
-        // Reset cursor to directly after the newly inserted word
-        let newCursorPos = currentMatchStart + malayalamWord.length + 1;
-        $editor[0].setSelectionRange(newCursorPos, newCursorPos);
-        
-        clearSuggestions();
-        $editor.focus();
-    }
-
     function clearSuggestions() {
-        $suggestionBar.html('<span class="suggestion-placeholder">Type English words here (e.g., \'namaskaram\')...</span>');
-        currentMatchStart = -1;
-        currentMatchEnd = -1;
+        $suggestionBar.html('<span class="suggestion-placeholder">Type English words here...</span>');
     }
 
     // ==========================================
-    // 4. Copy & DTP Conversion Pipeline
+    // 3. FML-TT Conversion Engine (Expanded)
     // ==========================================
-    
-    // Copy Standard Unicode
-    $('#btn-copy-unicode').on('click', function() {
-        copyToClipboard($editor.val(), $(this), "📋 Copy Unicode");
-    });
-
-    // Copy and Convert to FML-TT
     $('#btn-copy-fml').on('click', function() {
-        let unicodeText = $editor.val();
-        let fmlText = convertUnicodeToFML(unicodeText);
-        copyToClipboard(fmlText, $(this), "📋 FML-TT");
+        // Grab raw text (strips HTML tags for DTP pasting)
+        let text = $editor[0].innerText; 
+        
+        // --- PHASE 1: Vowel Splitting ---
+        text = text.replace(/([ക-ഹൺ-ൿ](?:്[ക-ഹൺ-ൿ])*)ൊ/g, "െ$1ാ"); 
+        text = text.replace(/([ക-ഹൺ-ൿ](?:്[ക-ഹൺ-ൿ])*)ോ/g, "േ$1ാ"); 
+        text = text.replace(/([ക-ഹൺ-ൿ](?:്[ക-ഹൺ-ൿ])*)ൌ/g, "െ$1ൗ"); 
+
+        // --- PHASE 2: Left Vowel Reordering ---
+        text = text.replace(/([ക-ഹൺ-ൿ](?:്[ക-ഹൺ-ൿ])*?)([െേൈ])/g, "$2$1");
+
+        // --- PHASE 3: Conjuncts (koottaksharangal) ---
+        // Using standard FML mapping characters
+        text = text.replace(/ക്[ക]/g, "¡"); // ക്ക
+        text = text.replace(/ങ്[ക]/g, "§"); // ങ്ക
+        text = text.replace(/ച്[ച]/g, "ച്ച"); // Update with your specific FML char
+        text = text.replace(/ഞ്[ച]/g, "©"); // ഞ്ച
+        text = text.replace(/ട്[ട]/g, "¶"); // ട്ട
+        text = text.replace(/ണ്[ട]/g, "ണ്ട"); // Update with your specific FML char
+        text = text.replace(/ത്[ത]/g, "ˆ"); // ത്ത
+        text = text.replace(/ന്[ത]/g, "´"); // ന്ത
+        text = text.replace(/ന്[ന]/g, "¡"); // ന്ന
+        text = text.replace(/പ്[പ]/g, "¸"); // പ്പ
+        text = text.replace(/മ്[പ]/g, "¼"); // മ്പ
+        text = text.replace(/മ്[മ]/g, "½"); // മ്മ
+        
+        // --- PHASE 4: Left & Right Vowel Signs ---
+        text = text.replace(/െ/g, "s"); // E-sign
+        text = text.replace(/േ/g, "t"); // Long E-sign
+        text = text.replace(/ൈ/g, "ൈ"); // Ai-sign
+        text = text.replace(/ാ/g, "m"); // Aa-sign
+        text = text.replace(/ി/g, "n"); // i-sign
+        text = text.replace(/ീ/g, "o"); // ii-sign
+        text = text.replace(/ു/g, "p"); // u-sign
+        text = text.replace(/ൂ/g, "q"); // uu-sign
+        
+        // --- PHASE 5: Standard Alphabet & Chillus ---
+        // Vowels
+        text = text.replace(/അ/g, "A");
+        text = text.replace(/ആ/g, "B");
+        text = text.replace(/ഇ/g, "C");
+        text = text.replace(/ഈ/g, "D");
+        text = text.replace(/ഉ/g, "E");
+        
+        // Consonants
+        text = text.replace(/ക/g, "I"); 
+        text = text.replace(/ഖ/g, "J");
+        text = text.replace(/ഗ/g, "K");
+        text = text.replace(/ഘ/g, "L");
+        text = text.replace(/ങ/g, "M");
+        text = text.replace(/ച/g, "N");
+        text = text.replace(/ഛ/g, "O");
+        text = text.replace(/ജ/g, "P");
+        text = text.replace(/ഝ/g, "Q");
+        text = text.replace(/ഞ/g, "R");
+        text = text.replace(/ട/g, "S");
+        text = text.replace(/ഠ/g, "T");
+        text = text.replace(/ഡ/g, "U");
+        text = text.replace(/ഢ/g, "V");
+        text = text.replace(/ണ/g, "W");
+        text = text.replace(/ത/g, "X");
+        text = text.replace(/ഥ/g, "Y");
+        text = text.replace(/ദ/g, "Z");
+        text = text.replace(/ധ/g, "a");
+        text = text.replace(/ന/g, "b");
+        text = text.replace(/പ/g, "c");
+        text = text.replace(/ഫ/g, "d");
+        text = text.replace(/ബ/g, "e");
+        text = text.replace(/ഭ/g, "f");
+        text = text.replace(/മ/g, "g");
+        text = text.replace(/യ/g, "h");
+        text = text.replace(/ര/g, "i");
+        text = text.replace(/ല/g, "j");
+        text = text.replace(/വ/g, "k");
+        text = text.replace(/ശ/g, "l");
+        text = text.replace(/ഷ/g, "m");
+        text = text.replace(/സ/g, "n");
+        text = text.replace(/ഹ/g, "o");
+        text = text.replace(/ള/g, "p");
+        text = text.replace(/ഴ/g, "q");
+        text = text.replace(/റ/g, "r");
+
+        // Virama (Chandrakkala)
+        text = text.replace(/്/g, "v"); 
+
+        navigator.clipboard.writeText(text);
+        let $btn = $(this);
+        $btn.text('Copied!');
+        setTimeout(() => $btn.text('Copy FML-TT'), 2000);
     });
 
-    // Copy and Convert to ML-TT
-    $('#btn-copy-ml').on('click', function() {
-        let unicodeText = $editor.val();
-        let mlText = convertUnicodeToML(unicodeText);
-        copyToClipboard(mlText, $(this), "📋 ML-TT");
+    // Copy Unicode
+    $('#btn-copy-unicode').on('click', function() {
+        navigator.clipboard.writeText($editor[0].innerText);
+        let $btn = $(this);
+        $btn.text('Copied!');
+        setTimeout(() => $btn.text('Copy Unicode'), 2000);
     });
 
-    function copyToClipboard(text, $btnElement, originalText) {
-        navigator.clipboard.writeText(text).then(() => {
-            $btnElement.html('✅ Copied!');
-            setTimeout(() => $btnElement.html(originalText), 2000);
-        });
-    }
-
-    // ==========================================
-    // 5. Advanced DTP Conversion Logic
-    // ==========================================
-    
-    function convertUnicodeToFML(text) {
-        let convertedText = text;
-
-        // PHASE 1: Split Multi-part Vowels (ൊ, ോ, ൌ) into left and right components
-        convertedText = convertedText.replace(/([ക-ഹൺ-ൿ](?:്[ക-ഹൺ-ൿ])*)ൊ/g, "െ$1ാ"); 
-        convertedText = convertedText.replace(/([ക-ഹൺ-ൿ](?:്[ക-ഹൺ-ൿ])*)ോ/g, "േ$1ാ"); 
-        convertedText = convertedText.replace(/([ക-ഹൺ-ൿ](?:്[ക-ഹൺ-ൿ])*)ൌ/g, "െ$1ൗ"); 
-
-        // PHASE 2: Physically move left-side vowels (െ, േ, ൈ) to the front of the consonant/conjunct
-        convertedText = convertedText.replace(/([ക-ഹൺ-ൿ](?:്[ക-ഹൺ-ൿ])*?)([െേൈ])/g, "$2$1");
-
-        // PHASE 3: Map complex Conjuncts (koottaksharangal) FIRST
-        // ** REPLACE THE "X", "Y", "Z" WITH YOUR ACTUAL FML-TT KEYBOARD CHARACTERS **
-        convertedText = convertedText.replace(/ണ്[ടറ]/g, "X"); // Example: ണ്ട
-        convertedText = convertedText.replace(/ങ്[ക]/g, "Y"); // Example: ങ്ക
-        convertedText = convertedText.replace(/ഞ്[ച]/g, "Z"); // Example: ഞ്ച
-        convertedText = convertedText.replace(/ക്[ക]/g, "W"); // Example: ക്ക
-        // ADD MORE CONJUNCTS HERE: മ്പ, ന്ത, ങ്ങ, etc.
-
-        // PHASE 4: Map Vowel Signs (Left side ones are already safely at the front)
-        convertedText = convertedText.replace(/െ/g, "A"); // Replace "A" with FML E-sign
-        convertedText = convertedText.replace(/േ/g, "B"); // Replace "B" with FML long E-sign
-        convertedText = convertedText.replace(/ൈ/g, "C"); // Replace "C" with FML Ai-sign
-        convertedText = convertedText.replace(/ാ/g, "D"); // Replace "D" with FML Aa-sign
-
-        // PHASE 5: Map Single Consonants and Chillus
-        convertedText = convertedText.replace(/ക/g, "k"); 
-        convertedText = convertedText.replace(/ഖ/g, "K");
-        // ADD THE REST OF THE ALPHABET HERE...
-
-        // Clean up remaining Viramas (Chandrakkala)
-        convertedText = convertedText.replace(/്/g, "v"); // Replace "v" with FML Chandrakkala
-
-        return convertedText;
-    }
-
-    function convertUnicodeToML(text) {
-        let convertedText = text;
-        
-        // Implement the same 5-phase structure here for ML-TT fonts.
-        // The ML-TT mapping will use different ASCII characters than FML-TT,
-        // but the regex grouping logic remains exactly the same.
-        
-        return convertedText; 
-    }
-
-    // ==========================================
-    // 6. UI Utilities
-    // ==========================================
+    // Dark Mode
     $('#btn-theme').on('click', function() {
-        let $body = $('body');
-        $body.attr('data-theme', $body.attr('data-theme') === 'dark' ? '' : 'dark');
+        $('body').toggleClass('dark-theme');
+        let icon = $('body').hasClass('dark-theme') ? 'ph-sun' : 'ph-moon';
+        $(this).html(`<i class="ph ${icon}"></i>`);
     });
 });

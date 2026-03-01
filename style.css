@@ -128,3 +128,99 @@ button { cursor: pointer; border: none; background: none; color: var(--text-prim
     box-shadow: 0 4px 10px rgba(0, 102, 255, 0.3);
     transform: scale(1.05);
 }
+:root {
+    --bg-main: #fcfcfc;
+    --bg-sidebar: #f3f4f6;
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --accent: #2563eb;
+    --border: #e5e7eb;
+    --radius: 8px;
+}
+
+body.dark-theme {
+    --bg-main: #111827;
+    --bg-sidebar: #0f1219;
+    --text-primary: #f9fafb;
+    --text-secondary: #9ca3af;
+    --border: #1f2937;
+    --accent: #3b82f6;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: var(--bg-main); color: var(--text-primary); transition: 0.2s; }
+
+.app-layout { display: flex; height: 100vh; overflow: hidden; }
+
+/* Sidebar */
+.sidebar {
+    width: 260px;
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+}
+
+.brand { display: flex; align-items: center; gap: 10px; margin-bottom: 2rem; color: var(--accent); }
+.brand i { font-size: 1.8rem; }
+.brand h2 { font-size: 1.2rem; font-weight: 600; color: var(--text-primary); }
+
+.file-nav { flex-grow: 1; display: flex; flex-direction: column; gap: 5px; }
+.nav-btn {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    border: none; background: none; color: var(--text-secondary);
+    border-radius: var(--radius); cursor: pointer; text-align: left; font-size: 0.95rem; font-weight: 500;
+}
+.nav-btn:hover { background: rgba(0,0,0,0.05); color: var(--text-primary); }
+.nav-btn.active { background: var(--border); color: var(--text-primary); }
+.dark-theme .nav-btn:hover { background: rgba(255,255,255,0.05); }
+
+/* User Profile */
+.user-profile {
+    display: flex; align-items: center; gap: 12px; padding-top: 1rem; border-top: 1px solid var(--border);
+}
+.avatar { width: 36px; height: 36px; border-radius: 50%; }
+.user-info { display: flex; flex-direction: column; }
+.user-name { font-size: 0.9rem; font-weight: 600; }
+.user-role { font-size: 0.75rem; color: var(--text-secondary); }
+
+/* Workspace & Toolbar */
+.workspace { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
+
+.top-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1rem 2rem; border-bottom: 1px solid var(--border); background: var(--bg-main);
+}
+
+.formatting-toolbar, .export-actions { display: flex; align-items: center; gap: 8px; }
+.format-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-secondary); padding: 5px; border-radius: 4px; }
+.format-btn:hover { background: var(--border); color: var(--text-primary); }
+.format-select { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-main); color: var(--text-primary); }
+.divider { width: 1px; height: 20px; background: var(--border); margin: 0 5px; }
+
+.action-btn { padding: 8px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-main); color: var(--text-primary); cursor: pointer; font-weight: 500; font-size: 0.85rem;}
+.action-btn:hover { border-color: var(--accent); color: var(--accent); }
+.dtp-btn { background: var(--accent); color: white; border: none; }
+.dtp-btn:hover { background: #1d4ed8; color: white; }
+.icon-btn { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--text-secondary); }
+
+/* Editor */
+.editor-container { padding: 0 2rem; flex-grow: 1; display: flex; flex-direction: column; max-width: 900px; margin: 0 auto; width: 100%; }
+
+.suggestion-bar {
+    display: flex; gap: 8px; padding: 10px 0; min-height: 55px; align-items: center;
+    border-bottom: 1px solid transparent; /* Keeps spacing stable */
+}
+.suggestion-placeholder { color: var(--text-secondary); font-size: 0.9rem; }
+.suggestion-item {
+    background: var(--bg-sidebar); border: 1px solid var(--border); color: var(--text-primary);
+    padding: 4px 14px; border-radius: 20px; font-family: 'Manjari', sans-serif; font-size: 1.1rem; cursor: pointer;
+}
+.suggestion-item.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+#editor {
+    flex-grow: 1; padding: 20px 0; font-family: 'Manjari', sans-serif; font-size: 1.3rem; line-height: 1.8;
+    outline: none; overflow-y: auto;
+}
+#editor[placeholder]:empty:before { content: attr(placeholder); color: var(--text-secondary); opacity: 0.6; pointer-events: none; }
