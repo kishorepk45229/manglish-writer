@@ -295,7 +295,7 @@
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <aside class="sidebar" id="sidebar">
-        <div class="brand"><div class="brand-logo">അ</div> Thooval</div>
+        <div class="brand"><div class="brand-logo">അമ്മ</div> Thooval</div>
         <button class="new-file-btn"><span>➕</span> New File</button>
         <div class="file-list">
             <div class="list-header">Today</div>
@@ -363,7 +363,7 @@
                     <span>FML-TT Converted Text</span>
                     <button class="close-modal" id="close-modal">&times;</button>
                 </div>
-                <p style="font-size: 0.85rem; color: var(--text-secondary);">The text has been converted using your custom mapping. Review before pasting.</p>
+                <p style="font-size: 0.85rem; color: var(--text-secondary);">The text has been converted mapping all complex conjuncts from the PDF. Review before pasting.</p>
                 <textarea id="fml-output-area"></textarea>
                 <button class="modal-btn" id="modal-copy-btn">📋 Copy to Clipboard</button>
             </div>
@@ -566,7 +566,7 @@
                 }
             });
 
-            // --- USER-PROVIDED FML-TT DICTIONARY ENGINE ---
+            // --- DEEP RESEARCH FML-TT DICTIONARY ENGINE ---
             $('#btn-copy-fml').on('click', function() {
                 let text = $editor.val();
                 
@@ -575,13 +575,20 @@
                 text = text.replace(/\u0D4B/g, "\u0D47\u0D3E"); // ോ -> േ + ാ
                 text = text.replace(/\u0D4C/g, "\u0D46\u0D57"); // ൌ -> െ + ൗ
 
-                // 2. Pre-map Koottaksharangal (Conjuncts) & Modifiers FIRST
-                // താങ്കൾ നൽകിയ ക്ക്വ = ¡z ചേർത്തിരിക്കുന്നു 
+                // 2. Pre-map Comprehensive Koottaksharangal (Conjuncts) based on PDF research
+                // താങ്കൾ നൽകിയ ക്ക്വ = ¡z, കം = Iw എന്നിവയെല്ലാം ഇതിലുണ്ട്.
                 const conjuncts = {
-                    'ക്ക': '¡', 'ങ്ക': '¢', 'ങ്ങ': '£', 'ച്ച': '¤', 'ഞ്ച': '¥', 
-                    'ഞ്ഞ': '¦', 'ട്ട': '§', 'ണ്ട': 'ï', 'ണ്ണ': '©', 'ത്ത': 'ª', 
-                    'ന്ത': '«', 'ന്ന': '¬', 'പ്പ': '­', 'മ്പ': '®', 'മ്മ': '¯', 
-                    'ല്ല': 'Ã', 'ള്ള': 'Å', '്വ': 'z' 
+                    'ക്ക': '¡', 'ക്ല': '¢', 'ക്ഷ': '£', 'ഗ്ഗ': '¤', 'ഗ്ന': '¥',
+                    'ങ്ങ': '§', 'ച്ച': '¨', 'ജ്ജ': '©', 'ഞ്ഞ': 'ª', 'ട്ട': '«',
+                    'ണ്ണ': '¬', 'ത്ത': '¯', 'ന്ന': '°', 'ന്മ': '±', 'പ്പ': '²',
+                    'ബ്ബ': '³', 'ഭ്ഭ': '´', 'മ്മ': 'µ', 'യ്യ': 'Õ', 'ല്ല': 'ñ',
+                    'വ്വ': 'õ', 'ശ്ശ': 'ô', 'സ്സ': '÷', 'ള്ള': 'û', 'റ്റ': '‰',
+                    'ങ്ക': '¦', 'ഞ്ച': '©', 'ണ്ട': 'ï', 'ന്ത': '´', 'മ്പ': '¼',
+                    'ക്യ': 'Iy', 'ക്ര': '{I', 'ക്വ': 'Iz', 'ച്ഛ': 'b', 'ജ്ഞ': 'P',
+                    'ഡ്ഡ': '«', 'ദ്ധ': '²', 'സ്ഥ': 'Ø', 'സ്ക': 'kv', 'സ്ത': 'kvX',
+                    'സ്ന': 'kv\\', 'സ്പ': 'kv]', 'സ്മ': 'kvv', 'സ്വ': 'kzt',
+                    'ത്ര': '{X', 'പ്യ': 'cy', 'പ്വ': 'cz', 'പ്ല': 'v', 'പ്ര': '{]',
+                    'ർഗ': 'ÀK', 'ന്റ': '³v', '്യ': 'y', '്ര': '{', '്വ': 'z'
                 };
                 
                 for (let [ml, ascii] of Object.entries(conjuncts)) {
@@ -593,10 +600,10 @@
                 const leftVowels = "([\u0D46\u0D47\u0D48])"; 
                 text = text.replace(new RegExp(consGroup + leftVowels, "g"), "$2$1");
 
-                // 4. Complete FML/Manglish Character Map (Single Letters)
+                // 4. Complete FML Character Map (Vowels & Consonants)
                 const fmlMap = {
-                    '\u0D46': 's', '\u0D47': 't', '\u0D48': 'u', // Left: െ, േ, ൈ
-                    '\u0D3F': 'n', '\u0D40': 'o', '\u0D41': 'p', '\u0D42': 'q', '\u0D43': 'r', '\u0D3E': 'm', '\u0D57': 'u', // Right: ി, ീ, ു, ൂ, ൃ, ാ, ൗ (കം=Iw, കൗ=Iu മാറ്റങ്ങൾ ഇവിടെ വരുത്തിയിരിക്കുന്നു)
+                    '\u0D46': 's', '\u0D47': 't', '\u0D48': 'S', // Left: െ, േ, ൈ
+                    '\u0D3F': 'n', '\u0D40': 'o', '\u0D41': 'p', '\u0D42': 'q', '\u0D43': 'r', '\u0D3E': 'm', '\u0D57': 'u', // Right: ി, ീ, ു, ൂ, ൃ, ാ, ൗ (കൗ=Iu)
                     '\u0D4D': 'v', '\u0D02': 'w', '\u0D03': 'x', // Virama(്)=v, Anusvaram(ം)=w, Visargam(ഃ)=x
                     
                     'ർ': 'À', 'ൽ': 'Â', 'ൾ': 'Ä', 'ൺ': 'Æ', 'ൻ': '³', 
