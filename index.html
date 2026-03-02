@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thooval | Manglish Rich Editor</title>
+    <title>Thooval | Advanced Manglish Rich Editor</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manjari:wght@400;700&family=Chilanka&family=Gayathri:wght@400;700&family=Noto+Sans+Malayalam:wght@400;700&family=Meera+Inimai&family=Anek+Malayalam:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -62,13 +62,22 @@
 
         .file-list { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 30vh; }
         .list-header { font-size: 0.75rem; text-transform: uppercase; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px; letter-spacing: 0.5px; }
-        .file-item { padding: 10px 12px; border-radius: var(--radius); cursor: pointer; font-weight: 500; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .file-item { padding: 10px 12px; border-radius: var(--radius); cursor: pointer; font-weight: 500; font-size: 0.9rem; display: flex; align-items: center; justify-content: space-between; color: var(--text-secondary); transition: 0.2s; }
         .file-item.active { background-color: var(--accent-light); color: var(--text-on-accent); border-color: var(--accent-color); }
+        .file-title-wrapper { display: flex; align-items: center; gap: 8px; overflow: hidden; white-space: nowrap; }
+        .file-title-wrapper span { overflow: hidden; text-overflow: ellipsis; }
+        
+        /* Delete File Button */
+        .btn-delete-file { background: transparent; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; display: none; padding: 2px; border-radius: 4px; transition: 0.2s;}
+        .btn-delete-file:hover { background: #fee2e2; }
+        .file-item:hover .btn-delete-file { display: block; }
         
         /* --- DICTIONARY SECTION --- */
         .dictionary-section { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 10px; flex-grow: 1; }
         .dict-title { font-size: 0.75rem; text-transform: uppercase; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.5px; display: flex; align-items: center; gap: 5px; }
         .dict-input { width: 100%; padding: 10px; border-radius: var(--radius); border: 1px solid var(--border-color); outline: none; font-size: 0.9rem; background: var(--bg-main); color: var(--text-primary); transition: 0.2s; }
+        .dict-input:focus { border-color: var(--accent-color); }
         .dict-results { display: flex; flex-direction: column; gap: 5px; max-height: 200px; overflow-y: auto; padding-right: 5px; }
         .dict-item { padding: 8px 10px; background: var(--bg-main); border: 1px solid var(--border-color); border-radius: var(--radius); cursor: pointer; font-family: 'Manjari', sans-serif; font-size: 1rem; color: var(--text-primary); display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
         .dict-item:hover { background: var(--accent-color); color: var(--text-on-accent); border-color: var(--accent-color); }
@@ -76,19 +85,23 @@
 
         /* User Profile & Theme Toggle */
         .bottom-actions { display: flex; align-items: center; justify-content: space-between; padding-top: 20px; border-top: 1px solid var(--border-color); margin-top: auto; }
-        .user-profile { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .avatar { width: 32px; height: 32px; border-radius: 50%; background-color: var(--accent-color); color: var(--text-on-accent); display: flex; justify-content: center; align-items: center; font-weight: 600; font-size: 0.8rem; overflow: hidden; }
-        .user-details { display: flex; flex-direction: column; }
-        .user-name { font-weight: 600; font-size: 0.8rem; }
-        .theme-toggle-btn { background: none; border: none; font-size: 1.5rem; color: var(--text-secondary); cursor: pointer; transition: 0.2s; }
-        .theme-toggle-btn:hover { color: var(--accent-color); }
+        .user-profile { display: flex; align-items: center; gap: 10px; overflow: hidden;}
+        .avatar { width: 36px; height: 36px; border-radius: 50%; background-color: var(--accent-color); color: var(--text-on-accent); display: flex; justify-content: center; align-items: center; font-weight: 600; font-size: 0.8rem; flex-shrink: 0; overflow: hidden; }
+        .user-details { display: flex; flex-direction: column; overflow: hidden; white-space: nowrap; }
+        .user-name { font-weight: 600; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis;}
+        .user-email { font-size: 0.7rem; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; }
+        
+        .action-icon-group { display: flex; gap: 5px; }
+        .theme-toggle-btn { background: none; border: none; font-size: 1.3rem; color: var(--text-secondary); cursor: pointer; transition: 0.2s; padding: 4px; border-radius: 6px;}
+        .theme-toggle-btn:hover { background: var(--bg-main); color: var(--accent-color); }
+        .logout-btn { background: none; border: none; font-size: 1.3rem; color: var(--text-secondary); cursor: pointer; transition: 0.2s; padding: 4px; border-radius: 6px; display: none; }
+        .logout-btn:hover { background: #fee2e2; color: #ef4444; }
 
         .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 999; }
 
         /* --- MAIN WORKSPACE --- */
         .workspace { flex-grow: 1; display: flex; flex-direction: column; background-color: var(--bg-main); height: 100vh; position: relative; width: calc(100% - 260px); }
         
-        /* Advanced Toolbar (Fully Restored) */
         .toolbar { min-height: 60px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; padding: 10px 20px; gap: 8px; flex-wrap: wrap; background: var(--bg-main); }
         .menu-toggle { display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-primary); }
         .tool-btn { background: transparent; border: none; color: var(--text-secondary); font-size: 1.2rem; cursor: pointer; padding: 6px; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
@@ -110,8 +123,6 @@
         .table-input { width: 50%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-main); color: var(--text-primary); outline: none; }
         .table-btn { width: 100%; background: var(--accent-color); color: var(--text-on-accent); border: none; padding: 8px; border-radius: 4px; font-weight: 600; cursor: pointer; }
 
-        .keyboard-toggle { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); background: var(--bg-sidebar); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border-color); margin-left: auto; }
-        
         /* Save Status Indicator */
         .save-status { font-size: 0.8rem; color: var(--text-secondary); font-weight: 500; display: flex; align-items: center; gap: 5px; margin-left: 10px; border-left: 1px solid var(--border-color); padding-left: 10px;}
 
@@ -137,7 +148,13 @@
         .action-btn { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-primary); font-weight: 500; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; white-space: nowrap; }
         .action-btn:hover { background-color: var(--bg-sidebar); border-color: var(--accent-color); }
         .action-btn.recording { background-color: #fee2e2; border-color: #ef4444; color: #b91c1c; animation: pulse 1.5s infinite; }
+        .action-btn i { font-size: 1.2rem; }
         .btn-dtp { background-color: var(--accent-light); color: var(--text-on-accent); border-color: var(--accent-color); }
+
+        /* Language Toggle - Restored Pill Shape */
+        .lang-toggle { display: flex; background: var(--bg-sidebar); border-radius: 20px; border: 1px solid var(--border-color); overflow: hidden; }
+        .lang-btn { padding: 8px 16px; border: none; background: transparent; color: var(--text-primary); cursor: pointer; font-size: 0.9rem; transition: 0.2s; }
+        .lang-btn.active { background: var(--accent-color); color: var(--text-on-accent); font-weight: 600; }
 
         /* MODAL POPUP */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); display: none; justify-content: center; align-items: center; z-index: 2000; }
@@ -156,7 +173,6 @@
             .sidebar-overlay.open { display: block; }
             .workspace { width: 100%; }
             .menu-toggle { display: block; }
-            .keyboard-toggle { margin-left: 0; width: 100%; justify-content: center; }
             .save-status { width: 100%; justify-content: center; border-left: none; padding-left: 0; margin-left: 0; margin-top: 10px;}
         }
     </style>
@@ -165,7 +181,7 @@
 
     <div class="login-overlay" id="login-overlay">
         <div class="login-box">
-            <div class="login-logo">മ</div>
+            <div class="login-logo">ള</div>
             <h1 class="login-title">Welcome to Thooval</h1>
             <p class="login-subtitle">Sign in to save your documents to the cloud and access them from anywhere.</p>
             <button class="btn-google" id="btn-google-login">
@@ -184,8 +200,7 @@
         
         <div class="file-list" id="cloud-file-list">
             <div class="list-header">My Documents</div>
-            <div class="file-item active"><i class="ph ph-file-text"></i> Draft_01.txt</div>
-        </div>
+            </div>
 
         <div class="dictionary-section">
             <div class="dict-title"><i class="ph ph-book-bookmark"></i> Dictionary Search</div>
@@ -194,11 +209,17 @@
         </div>
 
         <div class="bottom-actions">
-            <div class="user-profile" id="user-profile-box" title="Click to Sign Out">
+            <div class="user-profile" id="user-profile-box">
                 <div class="avatar" id="user-avatar">G</div>
-                <div class="user-details"><span class="user-name" id="user-name-display">Guest</span></div>
+                <div class="user-details">
+                    <span class="user-name" id="user-name-display">Guest</span>
+                    <span class="user-email" id="user-email-display">Guest Mode</span>
+                </div>
             </div>
-            <button class="theme-toggle-btn" id="btn-theme" title="Toggle Theme"><i class="ph ph-moon"></i></button>
+            <div class="action-icon-group">
+                <button class="theme-toggle-btn" id="btn-theme" title="Toggle Theme"><i class="ph ph-moon"></i></button>
+                <button class="logout-btn" id="btn-logout" title="Sign Out"><i class="ph ph-sign-out"></i></button>
+            </div>
         </div>
     </aside>
 
@@ -269,10 +290,6 @@
 
             <button class="tool-btn" id="btn-print" title="Print Document"><i class="ph ph-printer"></i></button>
 
-            <div class="keyboard-toggle">
-                <label><input type="radio" name="kbd" value="phonetic" checked> Phonetic</label>
-                <label><input type="radio" name="kbd" value="inscript"> Inscript</label>
-            </div>
             <div class="save-status" id="save-status"><i class="ph ph-cloud-check"></i> Local Ready</div>
         </div>
 
@@ -309,22 +326,196 @@
         </div>
     </main>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // താങ്കളുടെ കൃത്യമായ Firebase Keys
+        const firebaseConfig = {
+            apiKey: "AIzaSyBQFJ1lqnSdqFKEGnE4TzjfBdnxrrlG740",
+            authDomain: "thooval-6b344.firebaseapp.com",
+            projectId: "thooval-6b344",
+            storageBucket: "thooval-6b344.firebasestorage.app",
+            messagingSenderId: "850368774501",
+            appId: "1:850368774501:web:3abfb1b8c6f71ef2aba18c"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUserId = null;
+        let currentFileId = null;
+        let saveTimeout;
+        let currentLang = 'ml'; 
+
+        // --- AUTH OBSERVER ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                $('#user-name-display').text(user.displayName); 
+                $('#user-email-display').text(user.email); // Email Added Here
+                $('#user-avatar').html(`<img src="${user.photoURL}" style="width:100%; border-radius:50%;">`); 
+                $('#btn-logout').show(); // Show Logout Button
+
+                $('#login-overlay').css('opacity', '0');
+                setTimeout(() => $('#login-overlay').hide(), 500);
+                $('#save-status').html('<i class="ph ph-cloud-check"></i> Cloud Sync Active');
+                
+                loadUserFiles();
+            } else {
+                currentUserId = null;
+                $('#btn-logout').hide();
+                $('#login-overlay').show().css('opacity', '1');
+            }
+        });
+
+        // --- LOGIN & LOGOUT ---
+        $('#btn-google-login').click(function() {
+            signInWithPopup(auth, new GoogleAuthProvider()).catch((error) => {
+                console.error("Login Error:", error);
+                alert("Login failed! Ensure your domain is added to Firebase Authorized Domains.");
+            });
+        });
+
+        $('#btn-guest-login').click(function() {
+            $('#login-overlay').css('opacity', '0');
+            setTimeout(() => $('#login-overlay').hide(), 500);
+            $('#save-status').html('<i class="ph ph-warning-circle"></i> Guest Mode');
+            currentFileId = 'local-draft';
+            $('#cloud-file-list').html('<div class="list-header">Drafts</div><div class="file-item active" data-id="local-draft"><div class="file-title-wrapper"><i class="ph ph-file-text"></i> <span>Local_Draft.txt</span></div></div>');
+            if(localStorage.getItem('local-draft')) $('#editor').html(localStorage.getItem('local-draft'));
+        });
+
+        $('#btn-logout').click(function() {
+            if(currentUserId && confirm("Do you want to sign out of your account?")) {
+                signOut(auth);
+            }
+        });
+
+        // --- AUTO SAVE ---
+        $('#editor').on('input', function() {
+            clearTimeout(saveTimeout);
+            $('#save-status').html('<i class="ph ph-spinner-gap" style="animation: spin 1s linear infinite;"></i> Saving...');
+            
+            saveTimeout = setTimeout(async () => {
+                let content = $(this).html();
+                if (currentUserId && currentFileId && currentFileId !== 'local-draft') {
+                    try {
+                        const fileRef = doc(db, `users/${currentUserId}/files`, currentFileId);
+                        await updateDoc(fileRef, { content: content, lastModified: serverTimestamp() });
+                        $('#save-status').html('<i class="ph ph-cloud-check" style="color: var(--accent-color);"></i> Saved to Cloud');
+                    } catch (error) {
+                        $('#save-status').html('<i class="ph ph-warning-circle" style="color: red;"></i> Save Error');
+                    }
+                } else if (!currentUserId) {
+                    localStorage.setItem('local-draft', content);
+                    $('#save-status').html('<i class="ph ph-check-circle"></i> Saved locally');
+                }
+            }, 2000);
+        });
+
+        // --- NEW FILE ---
+        $('#btn-new-file').click(async function() {
+            if(!currentUserId) return alert("Please log in to create multiple cloud files.");
+            let newTitle = prompt("Enter new file name:", "Untitled Document");
+            if(!newTitle) return;
+
+            try {
+                const docRef = await addDoc(collection(db, `users/${currentUserId}/files`), {
+                    title: newTitle, content: "", lastModified: serverTimestamp()
+                });
+                currentFileId = docRef.id;
+                $('#editor').html(''); 
+            } catch (error) { console.error("Error creating file:", error); }
+        });
+
+        // --- DELETE FILE BUTTON ---
+        $(document).on('click', '.btn-delete-file', async function(e) {
+            e.stopPropagation(); // Prevents opening the file when clicking delete
+            if(!currentUserId) return alert("Cannot delete guest file.");
+            
+            let fileId = $(this).closest('.file-item').attr('data-id');
+            if(confirm("Are you sure you want to completely delete this file? This cannot be undone.")) {
+                try {
+                    await deleteDoc(doc(db, `users/${currentUserId}/files`, fileId));
+                    if(currentFileId === fileId) {
+                        currentFileId = null;
+                        $('#editor').html('<p style="color:var(--text-secondary);">File deleted. Please select or create a new file.</p>');
+                        $('#save-status').html('<i class="ph ph-trash"></i> File Deleted');
+                    }
+                } catch(error) {
+                    console.error("Error deleting file:", error);
+                }
+            }
+        });
+
+        // --- LOAD FILES ---
+        function loadUserFiles() {
+            const q = query(collection(db, `users/${currentUserId}/files`), orderBy("lastModified", "desc"));
+            onSnapshot(q, (snapshot) => {
+                let fileList = $('#cloud-file-list');
+                fileList.html('<div class="list-header">My Documents</div>');
+                
+                if (snapshot.empty) {
+                    addDoc(collection(db, `users/${currentUserId}/files`), {
+                        title: "Welcome Document", content: "<h1>നമസ്കാരം!</h1><p>ഇവിടെ മലയാളം ടൈപ്പ് ചെയ്തു തുടങ്ങാം...</p>", lastModified: serverTimestamp()
+                    });
+                    return;
+                }
+
+                let isFirst = true;
+                snapshot.forEach(docSnap => {
+                    let data = docSnap.data();
+                    if (isFirst && !currentFileId) {
+                        currentFileId = docSnap.id;
+                        $('#editor').html(data.content);
+                    }
+                    let isActive = (currentFileId === docSnap.id) ? 'active' : '';
+                    
+                    // Note the Delete Button injection here
+                    fileList.append(`
+                        <div class="file-item ${isActive}" data-id="${docSnap.id}">
+                            <div class="file-title-wrapper">
+                                <i class="ph ph-file-text"></i> <span>${data.title}</span>
+                            </div>
+                            <button class="btn-delete-file" title="Delete File"><i class="ph ph-trash"></i></button>
+                        </div>
+                    `);
+                    isFirst = false;
+                });
+            });
+        }
+
+        // --- SWITCH FILES ---
+        $(document).on('click', '.file-item', async function() {
+            if(!currentUserId || $(this).attr('data-id') === 'local-draft') return; 
+            let fileId = $(this).attr('data-id');
+            if(fileId === currentFileId) return; 
+            
+            $('.file-item').removeClass('active');
+            $(this).addClass('active');
+            currentFileId = fileId;
+            
+            $('#editor').html('<p style="color:var(--text-secondary);"><i class="ph ph-spinner-gap" style="animation: spin 1s linear infinite;"></i> Loading document...</p>');
+            
+            const querySnapshot = await getDocs(query(collection(db, `users/${currentUserId}/files`)));
+            querySnapshot.forEach((docSnap) => {
+                if(docSnap.id === fileId) $('#editor').html(docSnap.data().content);
+            });
+        });
+
+        // --- STANDARD JS LOGIC (Tools, Dictionary, Transliterator) ---
         $(document).ready(function() {
-            const $editor = $('#editor');
-            const $suggestionBar = $('#suggestion-bar');
-            let currentLang = 'ml'; 
-            let currentKeyboard = 'phonetic'; 
-
-            $editor.focus();
-
-            // --- THEME TOGGLE ---
+            $('#editor').focus();
+            
             $('#btn-theme').click(function() {
                 $('body').toggleClass('dark-theme');
                 $(this).html($('body').hasClass('dark-theme') ? '<i class="ph ph-sun"></i>' : '<i class="ph ph-moon"></i>');
             });
 
-            // --- INSERT IMAGE ---
+            // Insert Media
             $('#btn-image').click(() => $('#image-upload').click());
             $('#image-upload').change(function() {
                 let file = this.files[0];
@@ -335,54 +526,33 @@
                 }
             });
 
-            // --- INSERT TABLE ---
+            // Insert Table
             $('#btn-table-toggle').click(function(e) { e.stopPropagation(); $('#table-popup').toggleClass('show'); });
             $(document).click(function() { $('#table-popup').removeClass('show'); });
             $('#table-popup').click(function(e) { e.stopPropagation(); });
-            
             $('#btn-insert-table').click(function() {
-                let rows = $('#tbl-rows').val();
-                let cols = $('#tbl-cols').val();
+                let rows = $('#tbl-rows').val(); let cols = $('#tbl-cols').val();
                 let html = '<br><table border="1"><tbody>';
-                for(let r=0; r<rows; r++) {
-                    html += '<tr>';
-                    for(let c=0; c<cols; c++) html += `<td>Row ${r+1}, Col ${c+1}</td>`;
-                    html += '</tr>';
-                }
+                for(let r=0; r<rows; r++) { html += '<tr>'; for(let c=0; c<cols; c++) html += `<td>Row ${r+1}, Col ${c+1}</td>`; html += '</tr>'; }
                 html += '</tbody></table><br>';
-                
-                $editor.focus();
-                document.execCommand('insertHTML', false, html);
-                $('#table-popup').removeClass('show');
+                $('#editor').focus(); document.execCommand('insertHTML', false, html); $('#table-popup').removeClass('show');
             });
 
-            // --- PRINT FUNCTION ---
+            // Print
             $('#btn-print').click(function() {
-                let content = $editor.html();
+                let content = $('#editor').html();
                 let printWin = window.open('', '', 'height=700,width=900');
-                printWin.document.write('<html><head><title>Print Document</title>');
-                printWin.document.write('<style>body{font-family: Manjari, sans-serif; font-size: 18px; line-height: 1.6; padding: 40px;} table{border-collapse:collapse; width:100%; margin:15px 0;} th,td{border:1px solid #000; padding:10px; text-align:left;} img{max-width:100%;}</style>');
-                printWin.document.write('</head><body>' + content + '</body></html>');
-                printWin.document.close();
-                setTimeout(() => { printWin.print(); printWin.close(); }, 500);
+                printWin.document.write('<html><head><title>Print Document</title><style>body{font-family: Manjari, sans-serif; font-size: 18px; line-height: 1.6; padding: 40px;} table{border-collapse:collapse; width:100%; margin:15px 0;} th,td{border:1px solid #000; padding:10px; text-align:left;} img{max-width:100%;}</style></head><body>' + content + '</body></html>');
+                printWin.document.close(); setTimeout(() => { printWin.print(); printWin.close(); }, 500);
             });
 
-            // --- SAVE/RESTORE CURSOR STATE FOR DICTIONARY ---
+            // Restore Selection specific for Dictionary
             let savedRange = null;
-            function saveSelection() {
-                let sel = window.getSelection();
-                if (sel.getRangeAt && sel.rangeCount) savedRange = sel.getRangeAt(0);
-            }
-            function restoreSelection() {
-                if (savedRange) {
-                    let sel = window.getSelection();
-                    sel.removeAllRanges();
-                    sel.addRange(savedRange);
-                }
-            }
-            $editor.on('keyup mouseup blur', saveSelection);
+            function saveSelection() { let sel = window.getSelection(); if (sel.getRangeAt && sel.rangeCount) savedRange = sel.getRangeAt(0); }
+            function restoreSelection() { if (savedRange) { let sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(savedRange); } }
+            $('#editor').on('keyup mouseup blur', saveSelection);
 
-            // --- DICTIONARY API ---
+            // Dictionary API
             let dictTimer;
             $('#dict-input').on('input', function() {
                 let word = $(this).val().trim();
@@ -390,423 +560,116 @@
                 clearTimeout(dictTimer);
                 dictTimer = setTimeout(() => {
                     $.get(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ml&dt=t&dt=bd&q=${encodeURI(word)}`, function(data) {
-                        $('#dict-results').empty();
-                        let addedWords = new Set();
-                        if (data && data[1]) {
-                            data[1].forEach(part => {
-                                if(part[1]) part[1].forEach(synonym => {
-                                    if (!addedWords.has(synonym)) {
-                                        addedWords.add(synonym);
-                                        $('#dict-results').append(`<div class="dict-item" data-word="${synonym}">${synonym} <span class="dict-pos">${part[0]}</span></div>`);
-                                    }
-                                });
-                            });
-                        }
-                        if (data && data[0] && data[0][0]) {
-                            let primary = data[0][0][0];
-                            if (!addedWords.has(primary)) $('#dict-results').prepend(`<div class="dict-item" data-word="${primary}">${primary} <span class="dict-pos">primary</span></div>`);
-                        }
+                        $('#dict-results').empty(); let addedWords = new Set();
+                        if (data && data[1]) { data[1].forEach(part => { if(part[1]) part[1].forEach(synonym => { if (!addedWords.has(synonym)) { addedWords.add(synonym); $('#dict-results').append(`<div class="dict-item" data-word="${synonym}">${synonym} <span class="dict-pos">${part[0]}</span></div>`); } }); }); }
+                        if (data && data[0] && data[0][0]) { let primary = data[0][0][0]; if (!addedWords.has(primary)) $('#dict-results').prepend(`<div class="dict-item" data-word="${primary}">${primary} <span class="dict-pos">primary</span></div>`); }
                     });
                 }, 500);
             });
-
             $(document).on('mousedown', '.dict-item', function(e) { e.preventDefault(); });
             $(document).on('click', '.dict-item', function() {
                 let translatedWord = $(this).attr('data-word');
-                $editor.focus();
-                restoreSelection();
-                document.execCommand("insertText", false, translatedWord + " ");
-                saveSelection(); 
-                $('#dict-input').val(''); 
-                $('#dict-results').empty();
+                $('#editor').focus(); restoreSelection(); document.execCommand("insertText", false, translatedWord + " "); saveSelection(); $('#dict-input').val(''); $('#dict-results').empty();
             });
 
-            // Mobile Sidebar
+            // Lang Toggles
             $('#menu-toggle').click(() => { $('#sidebar, #sidebar-overlay').addClass('open'); });
             $('#sidebar-overlay').click(() => { $('#sidebar, #sidebar-overlay').removeClass('open'); });
-
-            // Language & Keyboard Toggles
-            $('#btn-lang-en').click(function() { currentLang = 'en'; $('.lang-btn').removeClass('active'); $(this).addClass('active'); clearSuggestions(); $editor.focus(); });
-            $('#btn-lang-ml').click(function() { currentLang = 'ml'; $('.lang-btn').removeClass('active'); $(this).addClass('active'); clearSuggestions(); $editor.focus(); });
-            $('input[name="kbd"]').change(function() { currentKeyboard = $(this).val(); clearSuggestions(); $editor.focus(); });
-
-            function insertTextAtCursor(text) {
-                document.execCommand("insertText", false, text);
-                saveSelection();
-            }
-
-            // --- PREDICTIVE TEXT & PHONETIC TYPING ---
-            const nextWordDB = {
-                'ഞാൻ': ['വരുന്നു', 'പോവുകയാണ്', 'ഇന്ന്'],
-                'നിങ്ങൾ': ['എവിടെയാണ്', 'എന്താണ്', 'വരുന്നുണ്ടോ'],
-                'നമസ്കാരം': ['എന്തൊക്കെയുണ്ട്', 'സ്വാഗതം', 'കൂട്ടുകാരേ'],
-                'എന്താണ്': ['വിശേഷം', 'പരിപാടി', 'പേര്'],
-                'എനിക്ക്': ['വേണം', 'ഇഷ്ടമാണ്', 'അറിയാം'],
-                'വളരെ': ['നല്ലത്', 'സന്തോഷം', 'നന്ദി']
-            };
-
-            let activeWordInfo = null;
-            let isPredicting = false;
+            $('#btn-lang-en').click(function() { currentLang = 'en'; $('.lang-btn').removeClass('active'); $(this).addClass('active'); clearSuggestions(); $('#editor').focus(); });
+            $('#btn-lang-ml').click(function() { currentLang = 'ml'; $('.lang-btn').removeClass('active'); $(this).addClass('active'); clearSuggestions(); $('#editor').focus(); });
+            
+            // Predictive Text & Typing 
+            const nextWordDB = { 'ഞാൻ': ['വരുന്നു', 'പോവുകയാണ്', 'ഇന്ന്'], 'നിങ്ങൾ': ['എവിടെയാണ്', 'എന്താണ്', 'വരുന്നുണ്ടോ'], 'നമസ്കാരം': ['എന്തൊക്കെയുണ്ട്', 'സ്വാഗതം', 'കൂട്ടുകാരേ'], 'എന്താണ്': ['വിശേഷം', 'പരിപാടി', 'പേര്'], 'എനിക്ക്': ['വേണം', 'ഇഷ്ടമാണ്', 'അറിയാം'], 'വളരെ': ['നല്ലത്', 'സന്തോഷം', 'നന്ദി'] };
+            let activeWordInfo = null; let isPredicting = false;
 
             function getWordBeforeCaret() {
-                let sel = window.getSelection();
-                if (!sel.rangeCount) return null;
-                let range = sel.getRangeAt(0);
-                let node = range.startContainer;
+                let sel = window.getSelection(); if (!sel.rangeCount) return null; let range = sel.getRangeAt(0); let node = range.startContainer;
                 if (node.nodeType === 3) { 
                     let textBefore = node.textContent.substring(0, range.startOffset);
                     let match = textBefore.match(/([a-zA-Z]+)$/);
                     if (match) return { type: 'phonetic', word: match[1], node: node, startOffset: range.startOffset - match[1].length, endOffset: range.startOffset };
-                    
-                    if (textBefore.endsWith(' ')) {
-                        let words = textBefore.trim().split(' ');
-                        let lastWord = words[words.length - 1];
-                        if (nextWordDB[lastWord]) return { type: 'predict', words: nextWordDB[lastWord] };
-                    }
-                }
-                return null;
+                    if (textBefore.endsWith(' ')) { let words = textBefore.trim().split(' '); let lastWord = words[words.length - 1]; if (nextWordDB[lastWord]) return { type: 'predict', words: nextWordDB[lastWord] }; }
+                } return null;
             }
 
-            $editor.on('input', function() {
-                if (currentLang === 'en' || currentKeyboard === 'inscript') return;
+            $('#editor').on('input', function() {
+                if (currentLang === 'en') return;
                 let info = getWordBeforeCaret();
-                if (info && info.type === 'phonetic') {
-                    activeWordInfo = info;
-                    isPredicting = false;
-                    fetchSuggestions(info.word);
-                } else if (info && info.type === 'predict') {
-                    activeWordInfo = null;
-                    isPredicting = true;
-                    renderSuggestions(info.words, true);
-                } else {
-                    clearSuggestions();
-                }
+                if (info && info.type === 'phonetic') { activeWordInfo = info; isPredicting = false; fetchSuggestions(info.word); } 
+                else if (info && info.type === 'predict') { activeWordInfo = null; isPredicting = true; renderSuggestions(info.words, true); } 
+                else { clearSuggestions(); }
             });
 
-            $editor.on('keydown', function(e) {
-                if (currentLang === 'en' || currentKeyboard === 'inscript') return;
+            $('#editor').on('keydown', function(e) {
+                if (currentLang === 'en') return;
                 let $active = $('.suggestion-item.active');
                 if ($('.suggestion-item').length > 0) {
-                    if (e.key === 'Enter' || (e.key === ' ' && !isPredicting)) {
-                        e.preventDefault(); if ($active.length) $active.click(); 
-                    } else if (e.key === 'ArrowRight') {
-                        e.preventDefault(); let $next = $active.next('.suggestion-item');
-                        if ($next.length) { $active.removeClass('active'); $next.addClass('active'); }
-                    } else if (e.key === 'ArrowLeft') {
-                        e.preventDefault(); let $prev = $active.prev('.suggestion-item');
-                        if ($prev.length) { $active.removeClass('active'); $prev.addClass('active'); }
-                    }
+                    if (e.key === 'Enter' || (e.key === ' ' && !isPredicting)) { e.preventDefault(); if ($active.length) $active.click(); } 
+                    else if (e.key === 'ArrowRight') { e.preventDefault(); let $next = $active.next('.suggestion-item'); if ($next.length) { $active.removeClass('active'); $next.addClass('active'); } } 
+                    else if (e.key === 'ArrowLeft') { e.preventDefault(); let $prev = $active.prev('.suggestion-item'); if ($prev.length) { $active.removeClass('active'); $prev.addClass('active'); } }
                 }
             });
 
-            function fetchSuggestions(word) {
-                $.get(`https://inputtools.google.com/request?text=${word}&itc=ml-t-i0-und&num=5&cp=0&cs=1&ie=utf-8&oe=utf-8`, function(res) {
-                    if (res[0] === 'SUCCESS') renderSuggestions(res[1][0][1], false);
-                });
-            }
-
+            function fetchSuggestions(word) { $.get(`https://inputtools.google.com/request?text=${word}&itc=ml-t-i0-und&num=5&cp=0&cs=1&ie=utf-8&oe=utf-8`, function(res) { if (res[0] === 'SUCCESS') renderSuggestions(res[1][0][1], false); }); }
             function renderSuggestions(words, isPredictionMode) {
-                $suggestionBar.empty();
-                if (isPredictionMode) $suggestionBar.append(`<span style="color:var(--accent-color); font-size:0.8rem; margin-right:5px;">✨ Smart Suggest:</span>`);
+                $('#suggestion-bar').empty();
+                if (isPredictionMode) $('#suggestion-bar').append(`<span style="color:var(--accent-color); font-size:0.8rem; margin-right:5px;">✨ Smart Suggest:</span>`);
                 words.forEach((word, index) => {
-                    let classes = `suggestion-item ${index === 0 ? 'active' : ''} ${isPredictionMode ? 'predictive' : ''}`;
-                    let $badge = $(`<span class="${classes}">${word}</span>`);
+                    let $badge = $(`<span class="suggestion-item ${index === 0 ? 'active' : ''} ${isPredictionMode ? 'predictive' : ''}">${word}</span>`);
                     $badge.on('mousedown', function(e) { e.preventDefault(); });
-                    $badge.on('click', function() { 
-                        if(isPredictionMode) insertTextAtCursor(word + " ");
-                        else replaceWord(word); 
-                    });
-                    $suggestionBar.append($badge);
+                    $badge.on('click', function() { if(isPredictionMode) { document.execCommand("insertText", false, word + " "); saveSelection(); } else replaceWord(word); });
+                    $('#suggestion-bar').append($badge);
                 });
             }
 
             function replaceWord(malayalamWord) {
-                if (!activeWordInfo) return;
-                let sel = window.getSelection();
-                let range = document.createRange();
-                range.setStart(activeWordInfo.node, activeWordInfo.startOffset);
-                range.setEnd(activeWordInfo.node, activeWordInfo.endOffset);
-                sel.removeAllRanges();
-                sel.addRange(range);
-                document.execCommand("insertText", false, malayalamWord + " ");
-                clearSuggestions();
-                saveSelection();
+                if (!activeWordInfo) return; let sel = window.getSelection(); let range = document.createRange();
+                range.setStart(activeWordInfo.node, activeWordInfo.startOffset); range.setEnd(activeWordInfo.node, activeWordInfo.endOffset);
+                sel.removeAllRanges(); sel.addRange(range);
+                document.execCommand("insertText", false, malayalamWord + " "); clearSuggestions(); saveSelection();
             }
+            function clearSuggestions() { $('#suggestion-bar').html('<span class="suggestion-placeholder">Type in English (e.g., \'namaskaram\')...</span>'); activeWordInfo = null; isPredicting = false; }
 
-            function clearSuggestions() {
-                $suggestionBar.html('<span class="suggestion-placeholder">Type in English (e.g., \'namaskaram\')...</span>');
-                activeWordInfo = null;
-                isPredicting = false;
-            }
-
-            // Inscript Keyboard
-            const inscriptMap = { 'D':'അ', 'E':'ആ', 'F':'ഇ', 'R':'ഈ', 'G':'ഉ', 'T':'ഊ', '+':'ഋ', 'S':'എ', 'W':'ഏ', 'A':'ഒ', 'Q':'ഓ', 'k':'ക', 'K':'ഖ', 'i':'ഗ', 'I':'ഘ', 'U':'ങ', ';':'ച', ':':'ഛ', 'p':'ജ', 'P':'ഝ', '}':'ഞ', "'":'ട', '"':'ഠ', '[':'ഡ', '{':'ഢ', 'C':'ണ', 'l':'ത', 'L':'ഥ', 'o':'ദ', 'O':'ധ', 'v':'ന', 'h':'പ', 'H':'ഫ', 'y':'ബ', 'Y':'ഭ', 'c':'മ', '/':'യ', 'j':'ര', 'n':'ല', 'b':'വ', 'M':'ശ', '<':'ഷ', 'm':'സ', 'u':'ഹ', 'N':'ള', '>':'ഴ', 'J':'റ', 'e':'ാ', 'f':'ി', 'r':'ീ', 'g':'ു', 't':'ൂ', '=':'ൃ', 's':'െ', 'w':'േ', 'a':'ൊ', 'q':'ോ', 'd':'്', 'X':'ം', '_':'ഃ' };
-            $editor.on('keypress', function(e) {
-                if (currentLang === 'ml' && currentKeyboard === 'inscript') {
-                    let char = String.fromCharCode(e.which);
-                    if (inscriptMap[char]) { e.preventDefault(); insertTextAtCursor(inscriptMap[char]); }
-                }
-            });
-
-            // --- LIVE VOICE TYPING (Safari Adjusted) ---
-            let recognition;
-            let isRecording = false;
-
+            // Voice Typing
+            let recognition; let isRecording = false;
             if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-                const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-                recognition = new SpeechRec();
-                recognition.continuous = true;
-                // Safari tends to crash with interim results sometimes, but Chrome needs it for fluid UI
-                recognition.interimResults = true; 
-
-                recognition.onstart = function() {
-                    isRecording = true;
-                    $('#btn-voice').addClass('recording').html('<i class="ph ph-stop"></i> Listening...');
-                };
-
+                recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                recognition.continuous = true; recognition.interimResults = true; 
+                recognition.onstart = function() { isRecording = true; $('#btn-voice').addClass('recording').html('<i class="ph ph-stop"></i> Listening...'); };
                 recognition.onresult = function(event) {
-                    let finalTranscript = '';
-                    let interimTranscript = '';
-                    for (let i = event.resultIndex; i < event.results.length; ++i) {
-                        if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript;
-                        else interimTranscript += event.results[i][0].transcript;
-                    }
-                    if (finalTranscript !== '') {
-                        $editor.focus();
-                        restoreSelection();
-                        document.execCommand("insertText", false, finalTranscript + " ");
-                        saveSelection();
-                    }
-                    if (interimTranscript !== '') $suggestionBar.html(`<span style="color:var(--accent-color); font-weight:bold;">Hearing: ${interimTranscript}...</span>`);
-                    else clearSuggestions();
+                    let finalTranscript = ''; let interimTranscript = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) { if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript; else interimTranscript += event.results[i][0].transcript; }
+                    if (finalTranscript !== '') { $('#editor').focus(); restoreSelection(); document.execCommand("insertText", false, finalTranscript + " "); saveSelection(); }
+                    if (interimTranscript !== '') $('#suggestion-bar').html(`<span style="color:var(--accent-color); font-weight:bold;">Hearing: ${interimTranscript}...</span>`); else clearSuggestions();
                 };
-
-                recognition.onerror = function(event) { 
-                    if(event.error !== 'no-speech') {
-                        console.error("Speech error:", event.error);
-                        alert("Voice typing encountered an error. Note: Safari has limited Malayalam support. Chrome is recommended."); 
-                    }
-                    $('#btn-voice').removeClass('recording').html('<i class="ph ph-microphone"></i> Voice Typing'); 
-                    isRecording = false; 
-                };
+                recognition.onerror = function() { $('#btn-voice').removeClass('recording').html('<i class="ph ph-microphone"></i> Voice Typing'); isRecording = false; };
                 recognition.onend = function() { $('#btn-voice').removeClass('recording').html('<i class="ph ph-microphone"></i> Voice Typing'); isRecording = false; };
             }
-
             $('#btn-voice').on('click', function() {
                 if (!recognition) return alert("Voice typing is not fully supported in this browser. Please use Chrome.");
-                if (isRecording) recognition.stop();
-                else { 
-                    recognition.lang = currentLang === 'ml' ? 'ml-IN' : 'en-IN'; 
-                    recognition.start(); 
-                }
+                if (isRecording) recognition.stop(); else { recognition.lang = currentLang === 'ml' ? 'ml-IN' : 'en-IN'; recognition.start(); }
             });
 
-            // --- MASTER FML-TT DICTIONARY ENGINE ---
+            // FML CONVERSION
             $('#btn-copy-fml').on('click', function() {
-                let text = $editor[0].innerText || $editor.text(); 
-                
+                let text = $('#editor')[0].innerText || $('#editor').text(); 
                 text = text.replace(/\u0D4A/g, "\u0D46\u0D3E").replace(/\u0D4B/g, "\u0D47\u0D3E").replace(/\u0D4C/g, "\u0D46\u0D57"); 
-                const consGroup = "([ക-ഹളഴറൺ-ൿ](?:്[ക-ഹളഴറൺ-ൿ])*)"; 
-                const leftVowels = "([\u0D46\u0D47\u0D48])"; 
-                text = text.replace(new RegExp(consGroup + leftVowels, "g"), "$2$1");
-
-                text = text.replace(/ണ്\u200D/g, "Æ").replace(/ന്\u200D/g, "³").replace(/ര്\u200D/g, "À").replace(/ല്\u200D/g, "Â").replace(/ള്\u200D/g, "Ä");
-                text = text.replace(/[\u200C\u200D]/g, '');
+                text = text.replace(new RegExp("([ക-ഹളഴറൺ-ൿ](?:്[ക-ഹളഴറൺ-ൿ])*)([\u0D46\u0D47\u0D48])", "g"), "$2$1");
+                text = text.replace(/ണ്\u200D/g, "Æ").replace(/ന്\u200D/g, "³").replace(/ര്\u200D/g, "À").replace(/ല്\u200D/g, "Â").replace(/ള്\u200D/g, "Ä").replace(/[\u200C\u200D]/g, '');
 
                 const conjuncts = { 'ദ്ദ': '±', 'ബ്ര': '{_', 'ന്ത്ര': '{´', 'ന്മ': '·', 'ട്ര': '{S', 'ത്സ': 'Õ', 'ന്ദ്ര': '{µ', 'ണ്ണ': '®', 'ന്ദ': 'µ', 'ന്ത': '´', 'ഗ്ര': '{K', 'ദ്ര്യ': '{Zy', 'ക്ല': '¢', 'ബ്ല': '»', 'സ്റ്റ': 'kvä', 'സ്ഥ': 'Ø', 'ജ്ജ': 'Ö', 'ക്ക': '¡', 'ക്ഷ': '£', 'ഗ്ഗ': '¤', 'ഗ്ന': '¥', 'ങ്ങ': '§', 'ച്ച': '¨', 'ഞ്ഞ': 'ª', 'ട്ട': '«', 'ത്ത': '¯', 'ന്ന': '¶', 'പ്പ': '¸', 'ബ്ബ': '³', 'ഭ്ഭ': '´', 'മ്മ': '½', 'യ്യ': '¿', 'ല്ല': 'Ã', 'വ്വ': 'Æ', 'ശ്ശ': 'È', 'സ്സ': 'Ê', 'ള്ള': 'Å', 'റ്റ': 'ä', 'ങ്ക': '¦', 'ഞ്ച': '©', 'ണ്ട': 'ï', 'മ്പ': '¼', 'ക്യ': 'Iy', 'ക്ര': '{I', 'ക്വ': 'Iz', 'ച്ഛ': 'b', 'ജ്ഞ': 'P', 'ഡ്ഡ': '«', 'ദ്ധ': '²', 'സ്ക': 'kv', 'സ്ത': 'kvX', 'സ്ന': 'kv\\', 'സ്പ': 'kv]', 'സ്മ': 'kvv', 'സ്വ': 'kzt', 'ശ്ര': '{i', 'സ്ര': '{k', 'ത്ര': '{X', 'പ്യ': ']y', 'പ്വ': ']z', 'പ്ല': ']v', 'പ്ര': '{]', 'ർഗ': 'ÀK', 'ന്റ': 'â', 'ൻ്റ': 'â', '്യ': 'y', '്ര': '{', '്വ': 'z' };
                 for (let [ml, ascii] of Object.entries(conjuncts)) text = text.split(ml).join(ascii);
 
-                const fmlMap = { 'അ': 'A', 'ആ': 'B', 'ഇ': 'C', 'ഈ': 'Cu', 'ഉ': 'D', 'ഊ': 'Du', 'ഋ': 'E', 'എ': 'F', 'ഏ': 'G', 'ഐ': 'sF', 'ഒ': 'H', 'ഓ': 'Hm', 'ഔ': 'Hu', 'ക': 'I', 'ഖ': 'J', 'ഗ': 'K', 'ഘ': 'L', 'ങ': 'M', 'ച': 'N', 'ഛ': 'O', 'ജ': 'P', 'ഝ': 'Q', 'ഞ': 'R', 'ട': 'S', 'ഠ': 'T', 'ഡ': 'U', 'ഢ': 'V', 'ണ': 'W', 'ത': 'X', 'ഥ': 'Y', 'ദ': 'Z', 'ധ': '[', 'ന': '\\', 'പ': ']', 'ഫ': '^', 'ബ': '_', 'ഭ': '`', 'മ': 'a', 'യ': 'b', 'ര': 'c', 'റ': 'd', 'ല': 'e', 'ള': 'f', 'ഴ': 'g', 'വ': 'h', 'ശ': 'i', 'ഷ': 'j', 'സ': 'k', 'ഹ': 'l', '\u0D46': 's', '\u0D47': 't', '\u0D48': 'ss', '\u0D3F': 'n', '\u0D40': 'o', '\u0D41': 'p', '\u0D42': 'q', '\u0D43': 'r', '\u0D3E': 'm', '\u0D57': 'u', '\u0D4D': 'v', '\u0D02': 'w', '\u0D03': 'x', 'ർ': 'À', 'ൽ': 'Â', 'ൾ': 'Ä', 'ൺ': '¬', 'ൻ': '³' };
+                const fmlMap = { 'അ':'A', 'ആ':'B', 'ഇ':'C', 'ഈ':'Cu', 'ഉ':'D', 'ഊ':'Du', 'ഋ':'E', 'എ':'F', 'ഏ':'G', 'ഐ':'sF', 'ഒ':'H', 'ഓ':'Hm', 'ഔ':'Hu', 'ക':'I', 'ഖ':'J', 'ഗ':'K', 'ഘ':'L', 'ങ':'M', 'ച':'N', 'ഛ':'O', 'ജ':'P', 'ഝ':'Q', 'ഞ':'R', 'ട':'S', 'ഠ':'T', 'ഡ':'U', 'ഢ':'V', 'ണ':'W', 'ത':'X', 'ഥ':'Y', 'ദ':'Z', 'ധ':'[', 'ന':'\\', 'പ':']', 'ഫ':'^', 'ബ':'_', 'ഭ':'`', 'മ':'a', 'യ':'b', 'ര':'c', 'റ':'d', 'ല':'e', 'ള':'f', 'ഴ':'g', 'വ':'h', 'ശ':'i', 'ഷ':'j', 'സ':'k', 'ഹ':'l', '\u0D46':'s', '\u0D47':'t', '\u0D48':'ss', '\u0D3F':'n', '\u0D40':'o', '\u0D41':'p', '\u0D42':'q', '\u0D43':'r', '\u0D3E':'m', '\u0D57':'u', '\u0D4D':'v', '\u0D02':'w', '\u0D03':'x', 'ർ':'À', 'ൽ':'Â', 'ൾ':'Ä', 'ൺ':'¬', 'ൻ':'³' };
                 let fmlOutput = "";
-                for (let i = 0; i < text.length; i++) {
-                    let char = text[i];
-                    fmlOutput += (char.length === 1 && fmlMap[char]) ? fmlMap[char] : char;
-                }
+                for (let i = 0; i < text.length; i++) fmlOutput += (char.length === 1 && fmlMap[text[i]]) ? fmlMap[text[i]] : text[i];
 
-                $('#fml-output-area').val(fmlOutput);
-                $('#fml-modal').fadeIn(200).css("display", "flex");
+                $('#fml-output-area').val(fmlOutput); $('#fml-modal').fadeIn(200).css("display", "flex");
             });
 
             $('#modal-copy-btn').on('click', function() { navigator.clipboard.writeText($('#fml-output-area').val()); $(this).html('✅ Copied!'); setTimeout(() => $(this).html('📋 Copy to Clipboard'), 2000); });
             $('#close-modal').on('click', () => $('#fml-modal').fadeOut(200));
-
-            $('#btn-copy-uni').on('click', function() {
-                navigator.clipboard.writeText($editor[0].innerText || $editor.text());
-                let $btn = $(this); let og = $btn.html(); $btn.html('✅ Copied!'); setTimeout(() => $btn.html(og), 2000);
-            });
-        });
-    </script>
-    <script type="module">
-        // Firebase മോഡ്യൂളുകൾ ഇംപോർട്ട് ചെയ്യുന്നു
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, onSnapshot, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        // ======================================================================
-        // താഴെ കാണുന്ന ഭാഗത്ത് നിങ്ങളുടെ യഥാർത്ഥ FIREBASE കീകൾ നൽകുക!
-        // ======================================================================
-        const firebaseConfig = {
-        apiKey: "AIzaSyBQFJ1lqnSdqFKEGnE4TzjfBdnxrrlG740",
-        authDomain: "thooval-6b344.firebaseapp.com",
-        projectId: "thooval-6b344",
-        storageBucket: "thooval-6b344.firebasestorage.app",
-        messagingSenderId: "850368774501",
-        appId: "1:850368774501:web:3abfb1b8c6f71ef2aba18c"
-        };
-        
-        // ഫയർബേസ് ആരംഭിക്കുന്നു
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        let currentUserId = null;
-        let currentFileId = null;
-        let saveTimeout;
-
-        // --- 1. ലോഗിൻ സ്റ്റാറ്റസ് പരിശോധിക്കുന്നു ---
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // യൂസർ ലോഗിൻ ചെയ്തിട്ടുണ്ട്
-                currentUserId = user.uid;
-                $('#user-name-display').text(user.displayName); 
-                $('#user-avatar').html(`<img src="${user.photoURL}" style="width:100%; border-radius:50%;">`); 
-                $('#login-overlay').css('opacity', '0');
-                setTimeout(() => $('#login-overlay').hide(), 500);
-                $('#save-status').html('<i class="ph ph-cloud-check"></i> Cloud Sync Active');
-                
-                // യൂസറുടെ സേവ് ചെയ്ത ഫയലുകൾ ക്ലൗഡിൽ നിന്നും എടുക്കുന്നു
-                loadUserFiles();
-            } else {
-                // യൂസർ ലോഗിൻ ചെയ്തിട്ടില്ല, ലോഗിൻ പേജ് കാണിക്കുന്നു
-                currentUserId = null;
-                $('#login-overlay').show().css('opacity', '1');
-            }
-        });
-
-        // --- 2. ഗൂഗിൾ വഴി ലോഗിൻ ചെയ്യാനുള്ള ബട്ടൺ ---
-        $('#btn-google-login').click(function() {
-            const provider = new GoogleAuthProvider();
-            signInWithPopup(auth, provider).catch((error) => {
-                console.error("Login Error:", error);
-                alert("Login failed! Ensure your GitHub Pages domain is added to Firebase Authorized Domains.");
-            });
-        });
-
-        // ഗെസ്റ്റ് ലോഗിൻ (സേവ് ആകില്ല)
-        $('#btn-guest-login').click(function() {
-            $('#login-overlay').css('opacity', '0');
-            setTimeout(() => $('#login-overlay').hide(), 500);
-            $('#save-status').html('<i class="ph ph-warning-circle"></i> Guest Mode (No Cloud Save)');
-            currentFileId = 'local-draft';
-        });
-
-        // സൈൻ ഔട്ട് ചെയ്യാനുള്ള ഓപ്ഷൻ
-        $('#user-profile-box').click(function() {
-            if(currentUserId && confirm("Do you want to sign out of your account?")) {
-                signOut(auth);
-            }
-        });
-
-        // --- 3. ഓട്ടോ സേവ് (AUTO-SAVE TO CLOUD) ---
-        $('#editor').on('input', function() {
-            clearTimeout(saveTimeout);
-            $('#save-status').html('<i class="ph ph-spinner-gap" style="animation: spin 1s linear infinite;"></i> Saving to cloud...');
-            
-            saveTimeout = setTimeout(async () => {
-                let content = $(this).html();
-                
-                if (currentUserId && currentFileId && currentFileId !== 'local-draft') {
-                    try {
-                        const fileRef = doc(db, `users/${currentUserId}/files`, currentFileId);
-                        await updateDoc(fileRef, { 
-                            content: content, 
-                            lastModified: serverTimestamp() 
-                        });
-                        $('#save-status').html('<i class="ph ph-cloud-check" style="color: var(--accent-color);"></i> Saved to Cloud');
-                    } catch (error) {
-                        console.error("Error saving document:", error);
-                        $('#save-status').html('<i class="ph ph-warning-circle" style="color: red;"></i> Save Error');
-                    }
-                }
-            }, 2000); // ടൈപ്പിംഗ് നിർത്തി 2 സെക്കൻഡിനു ശേഷം സേവ് ആകുന്നു
-        });
-
-        // --- 4. പുതിയ ഫയൽ നിർമ്മിക്കാൻ ---
-        $('#btn-new-file').click(async function() {
-            if(!currentUserId) return alert("Please log in with Google to create saved files.");
-            
-            let newTitle = prompt("Enter new file name:", "Untitled Document");
-            if(!newTitle) return;
-
-            try {
-                // പുതിയ ഫയൽ ക്ലൗഡിൽ ഉണ്ടാക്കുന്നു
-                const docRef = await addDoc(collection(db, `users/${currentUserId}/files`), {
-                    title: newTitle, 
-                    content: "", 
-                    lastModified: serverTimestamp()
-                });
-                
-                currentFileId = docRef.id;
-                $('#editor').html(''); 
-            } catch (error) {
-                console.error("Error creating file:", error);
-            }
-        });
-
-        // --- 5. ഫയലുകൾ തത്സമയം ലോഡ് ചെയ്യാൻ (REAL-TIME SYNC) ---
-        function loadUserFiles() {
-            const q = query(collection(db, `users/${currentUserId}/files`), orderBy("lastModified", "desc"));
-            onSnapshot(q, (snapshot) => {
-                let fileList = $('#cloud-file-list');
-                fileList.html('<div class="list-header">My Documents</div>');
-                
-                // യൂസർക്ക് ഫയലുകൾ ഒന്നും ഇല്ലെങ്കിൽ പുതിയത് ഉണ്ടാക്കുന്നു
-                if (snapshot.empty) {
-                    addDoc(collection(db, `users/${currentUserId}/files`), {
-                        title: "Welcome Document",
-                        content: "<h1>നമസ്കാരം!</h1><p>ഇവിടെ മലയാളം ടൈപ്പ് ചെയ്തു തുടങ്ങാം...</p>",
-                        lastModified: serverTimestamp()
-                    });
-                    return;
-                }
-
-                let isFirst = true;
-                snapshot.forEach(docSnap => {
-                    let data = docSnap.data();
-                    
-                    // ആദ്യത്തെ ഫയൽ ഡിഫോൾട്ട് ആയി എഡിറ്ററിൽ കാണിക്കുന്നു
-                    if (isFirst && !currentFileId) {
-                        currentFileId = docSnap.id;
-                        $('#editor').html(data.content);
-                    }
-                    
-                    let isActive = (currentFileId === docSnap.id) ? 'active' : '';
-                    fileList.append(`<div class="file-item ${isActive}" data-id="${docSnap.id}"><i class="ph ph-file-text"></i> ${data.title}</div>`);
-                    isFirst = false;
-                });
-            });
-        }
-
-        // --- 6. ഫയലുകൾ മാറുമ്പോൾ (SWITCH FILES) ---
-        $(document).on('click', '.file-item', async function() {
-            if(!currentUserId) return; 
-            
-            let fileId = $(this).attr('data-id');
-            if(fileId === currentFileId) return; 
-            
-            $('.file-item').removeClass('active');
-            $(this).addClass('active');
-            currentFileId = fileId;
-            
-            $('#editor').html('<p style="color:var(--text-secondary);"><i class="ph ph-spinner-gap" style="animation: spin 1s linear infinite;"></i> Loading document...</p>');
-            
-            const q = query(collection(db, `users/${currentUserId}/files`));
-            const querySnapshot = await getDocs(q);
-            querySnapshot.forEach((docSnap) => {
-                if(docSnap.id === fileId) {
-                    $('#editor').html(docSnap.data().content);
-                }
-            });
+            $('#btn-copy-uni').on('click', function() { navigator.clipboard.writeText($('#editor')[0].innerText || $('#editor').text()); let $btn = $(this); let og = $btn.html(); $btn.html('✅ Copied!'); setTimeout(() => $btn.html(og), 2000); });
         });
     </script>
 </body>
