@@ -123,12 +123,76 @@
             border-color: var(--accent-color);
         }
 
+        /* --- DICTIONARY SECTION --- */
+        .dictionary-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .dict-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: var(--text-secondary);
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .dict-input {
+            width: 100%;
+            padding: 10px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            outline: none;
+            font-size: 0.9rem;
+            background: var(--bg-main);
+            color: var(--text-primary);
+        }
+
+        .dict-input:focus {
+            border-color: var(--accent-color);
+        }
+
+        .dict-results {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .dict-item {
+            padding: 8px 10px;
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-family: 'Manjari', sans-serif;
+            font-size: 1rem;
+            color: var(--text-primary);
+            transition: 0.2s;
+        }
+
+        .dict-item:hover {
+            background: var(--accent-color);
+            color: var(--text-on-accent);
+            border-color: var(--accent-color);
+        }
+
+        /* User Profile */
         .user-profile {
             display: flex;
             align-items: center;
             gap: 12px;
             padding-top: 20px;
             border-top: 1px solid var(--border-color);
+            margin-top: auto;
         }
 
         .avatar {
@@ -294,16 +358,23 @@
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <aside class="sidebar" id="sidebar">
-        <div class="brand"><div class="brand-logo"></div> Thooval <small>v1.0</small></div>
+        <div class="brand"><div class="brand-logo">യ</div> Thooval</div>
         <button class="new-file-btn"><span>➕</span> New File</button>
         <div class="file-list">
             <div class="list-header">Today</div>
             <div class="file-item active"><span>📄</span> Draft_01.txt</div>
         </div>
+
+        <div class="dictionary-section">
+            <div class="dict-title">📖 Dictionary Search</div>
+            <input type="text" id="dict-input" class="dict-input" placeholder="Type English word...">
+            <div id="dict-results" class="dict-results"></div>
+        </div>
+
         <div class="user-profile">
-            <div class="avatar">KK</div>
+            <div class="avatar">U</div>
             <div class="user-details">
-                <span class="user-name">Kishore Krishnan</span>
+                <span class="user-name">Demo User</span>
                 <span class="user-role">Workspace User</span>
             </div>
         </div>
@@ -378,6 +449,37 @@
             let currentKeyboard = 'phonetic'; 
             let currentMatchStart = -1;
             let currentMatchEnd = -1;
+
+            // --- DICTIONARY SEARCH API LOGIC ---
+            let dictTimer;
+            $('#dict-input').on('input', function() {
+                let word = $(this).val().trim();
+                if (word.length < 2) {
+                    $('#dict-results').empty();
+                    return;
+                }
+                
+                clearTimeout(dictTimer);
+                // Use a free translation endpoint for English to Malayalam
+                dictTimer = setTimeout(() => {
+                    let url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ml&dt=t&q=${encodeURI(word)}`;
+                    $.get(url, function(data) {
+                        if (data && data[0] && data[0][0]) {
+                            let translated = data[0][0][0];
+                            $('#dict-results').html(`<div class="dict-item" title="Click to add to editor">${translated}</div>`);
+                        }
+                    });
+                }, 500);
+            });
+
+            // Add clicked dictionary word to Editor
+            $(document).on('click', '.dict-item', function() {
+                let translatedWord = $(this).text();
+                insertTextAtCursor(translatedWord + " ");
+                $('#dict-input').val('');
+                $('#dict-results').empty();
+                $editor.focus();
+            });
 
             // Mobile Sidebar
             $('#menu-toggle').on('click', function() { $('#sidebar').addClass('open'); $('#sidebar-overlay').addClass('open'); });
@@ -565,26 +667,21 @@
                 }
             });
 
-            // --- MASTER USER-PROVIDED FML-TT DICTIONARY ENGINE ---
+            // --- MASTER FML-TT DICTIONARY ENGINE ---
             $('#btn-copy-fml').on('click', function() {
                 let text = $editor.val();
                 
-                // 1. Force explicit mathematical splitting of compound vowels
-                text = text.replace(/\u0D4A/g, "\u0D46\u0D3E"); // ൊ -> െ + ാ
-                text = text.replace(/\u0D4B/g, "\u0D47\u0D3E"); // ോ -> േ + ാ
-                text = text.replace(/\u0D4C/g, "\u0D46\u0D57"); // ൌ -> െ + ൗ
+                text = text.replace(/\u0D4A/g, "\u0D46\u0D3E"); 
+                text = text.replace(/\u0D4B/g, "\u0D47\u0D3E"); 
+                text = text.replace(/\u0D4C/g, "\u0D46\u0D57"); 
 
-                // 2. CRITICAL FIX: Shift LEFT vowels BEFORE replacing consonants!
-                // ഇത് കൂട്ടക്ഷരങ്ങൾ മാറ്റുന്നതിന് മുൻപ് തന്നെ ചിഹ്നങ്ങളെ മുന്നിലെത്തിക്കും
                 const consGroup = "([ക-ഹളഴറൺ-ൿ](?:്[ക-ഹളഴറൺ-ൿ])*)"; 
                 const leftVowels = "([\u0D46\u0D47\u0D48])"; 
                 text = text.replace(new RegExp(consGroup + leftVowels, "g"), "$2$1");
 
-                // Clear hidden Zero Width Joiners (ZWJ) that break conversions
                 text = text.replace(/ണ്\u200D/g, "Æ").replace(/ന്\u200D/g, "³").replace(/ര്\u200D/g, "À").replace(/ല്\u200D/g, "Â").replace(/ള്\u200D/g, "Ä");
                 text = text.replace(/[\u200C\u200D]/g, '');
 
-                // 3. Map Koottaksharangal (Conjuncts) based on your custom list
                 const conjuncts = {
                     'ക്ക': '¡', 'ക്ല': '¢', 'ക്ഷ': '£', 'ഗ്ഗ': '¤', 'ഗ്ന': '¥',
                     'ങ്ങ': '§', 'ച്ച': '¨', 'ജ്ജ': '©', 'ഞ്ഞ': 'ª', 'ട്ട': '«',
@@ -604,14 +701,11 @@
                     text = text.split(ml).join(ascii);
                 }
 
-                // 4. Complete FML Character Map
                 const fmlMap = {
-                    // Vowels
                     'അ': 'A', 'ആ': 'B', 'ഇ': 'C', 'ഈ': 'Cu', 'ഉ': 'D', 
                     'ഊ': 'Du', 'ഋ': 'E', 'എ': 'F', 'ഏ': 'G', 'ഐ': 'sF', 
                     'ഒ': 'H', 'ഓ': 'Hm', 'ഔ': 'Hu', 
                     
-                    // Consonants
                     'ക': 'I', 'ഖ': 'J', 'ഗ': 'K', 'ഘ': 'L', 'ങ': 'M',
                     'ച': 'N', 'ഛ': 'O', 'ജ': 'P', 'ഝ': 'Q', 'ഞ': 'R',
                     'ട': 'S', 'ഠ': 'T', 'ഡ': 'U', 'ഢ': 'V', 'ണ': 'W',
@@ -620,12 +714,10 @@
                     'യ': 'b', 'ര': 'c', 'റ': 'd', 'ല': 'e', 'ള': 'f', 
                     'ഴ': 'g', 'വ': 'h', 'ശ': 'i', 'ഷ': 'j', 'സ': 'k', 'ഹ': 'l',
                     
-                    // Left Modifiers
                     '\u0D46': 's', // െ
                     '\u0D47': 't', // േ
                     '\u0D48': 'ss', // ൈ
                     
-                    // Right/Bottom Modifiers
                     '\u0D3F': 'n', // ി
                     '\u0D40': 'o', // ീ
                     '\u0D41': 'p', // ു
@@ -634,13 +726,11 @@
                     '\u0D3E': 'm', // ാ
                     '\u0D57': 'u', // ൗ 
                     
-                    // Special Signs
                     '\u0D4D': 'v', // ് (Virama)
                     '\u0D02': 'w', // ം (Anusvaram)
                     '\u0D03': 'x', // ഃ (Visargam)
                     
-                    // Atomic Chillus
-                    'ർ': 'À', 'ൽ': 'Â', 'ൾ': 'Ä', 'ൺ': 'Æ', 'ൻ': '³'
+                    'ർ': 'À', 'ൽ': 'Â', 'ൾ': 'Ä', 'ൺ': '¬', 'ൻ': '³'
                 };
 
                 let fmlOutput = "";
@@ -661,7 +751,6 @@
 
             $('#close-modal').on('click', function() { $('#fml-modal').fadeOut(200); });
 
-            // Standard Copy
             $('#btn-copy-uni').on('click', function() {
                 navigator.clipboard.writeText($editor.val());
                 let $btn = $(this);
