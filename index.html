@@ -428,8 +428,7 @@
                 "'":'ട', '"':'ഠ', '[':'ഡ', '{':'ഢ', 'C':'ണ', 'l':'ത', 'L':'ഥ', 'o':'ദ', 'O':'ധ', 'v':'ന',
                 'h':'പ', 'H':'ഫ', 'y':'ബ', 'Y':'ഭ', 'c':'മ', '/':'യ', 'j':'ര', 'n':'ല', 'b':'വ', 'M':'ശ',
                 '<':'ഷ', 'm':'സ', 'u':'ഹ', 'N':'ള', '>':'ഴ', 'J':'റ',
-                'e':'ാ', 'f':'ി', 'r':'ീ', 'g':'ു', 't':'ൂ', '=':'ൃ', 's':'െ', 'w':'േ', 'a':'ൊ', 'q':'ോ', 'd':'്',
-                'X':'ം', '_':'ഃ'
+                'e':'ാ', 'f':'ി', 'r':'ീ', 'g':'ു', 't':'ൂ', '=':'ൃ', 's':'െ', 'w':'േ', 'a':'ൊ', 'q':'ോ', 'd':'്', 'X':'ം', '_':'ഃ'
             };
             $editor.on('keypress', function(e) {
                 if (currentLang === 'ml' && currentKeyboard === 'inscript') {
@@ -575,14 +574,23 @@
                 text = text.replace(/\u0D4B/g, "\u0D47\u0D3E"); // ോ -> േ + ാ
                 text = text.replace(/\u0D4C/g, "\u0D46\u0D57"); // ൌ -> െ + ൗ
 
-                // 2. Map Koottaksharangal (Conjuncts) based on your custom list
-                // പുതിയ മാറ്റങ്ങൾ ഉൾപ്പെടുത്തി: സ്സ = Ê, ശ്ശ = È, ന്റ = â, ശ്ര = {i, സ്ര = {k
+                // 2. CRITICAL FIX: Shift LEFT vowels BEFORE replacing consonants!
+                // ഇത് കൂട്ടക്ഷരങ്ങൾ മാറ്റുന്നതിന് മുൻപ് തന്നെ ചിഹ്നങ്ങളെ മുന്നിലെത്തിക്കും
+                const consGroup = "([ക-ഹളഴറൺ-ൿ](?:്[ക-ഹളഴറൺ-ൿ])*)"; 
+                const leftVowels = "([\u0D46\u0D47\u0D48])"; 
+                text = text.replace(new RegExp(consGroup + leftVowels, "g"), "$2$1");
+
+                // Clear hidden Zero Width Joiners (ZWJ) that break conversions
+                text = text.replace(/ണ്\u200D/g, "Æ").replace(/ന്\u200D/g, "³").replace(/ര്\u200D/g, "À").replace(/ല്\u200D/g, "Â").replace(/ള്\u200D/g, "Ä");
+                text = text.replace(/[\u200C\u200D]/g, '');
+
+                // 3. Map Koottaksharangal (Conjuncts) based on your custom list
                 const conjuncts = {
                     'ക്ക': '¡', 'ക്ല': '¢', 'ക്ഷ': '£', 'ഗ്ഗ': '¤', 'ഗ്ന': '¥',
                     'ങ്ങ': '§', 'ച്ച': '¨', 'ജ്ജ': '©', 'ഞ്ഞ': 'ª', 'ട്ട': '«',
                     'ണ്ണ': '¬', 'ത്ത': '¯', 'ന്ന': '¶', 'ന്മ': '±', 'പ്പ': '¸',
                     'ബ്ബ': '³', 'ഭ്ഭ': '´', 'മ്മ': '½', 'യ്യ': '¿', 'ല്ല': 'Ã',
-                    'വ്വ': 'Æ', 'ശ്ശ': 'È', 'സ്സ': 'Ê', 'ള്ള': 'û', 'റ്റ': 'ä',
+                    'വ്വ': 'Æ', 'ശ്ശ': 'È', 'സ്സ': 'Ê', 'ള്ള': 'Å', 'റ്റ': 'ä',
                     'ങ്ക': '¦', 'ഞ്ച': '©', 'ണ്ട': 'ï', 'ന്ത': '´', 'മ്പ': '¼',
                     'ക്യ': 'Iy', 'ക്ര': '{I', 'ക്വ': 'Iz', 'ച്ഛ': 'b', 'ജ്ഞ': 'P',
                     'ഡ്ഡ': '«', 'ദ്ധ': '²', 'സ്ഥ': 'Ø', 'സ്ക': 'kv', 'സ്ത': 'kvX',
@@ -595,11 +603,6 @@
                 for (let [ml, ascii] of Object.entries(conjuncts)) {
                     text = text.split(ml).join(ascii);
                 }
-
-                // 3. Shift LEFT vowels BEFORE the preceding consonant group 
-                const consGroup = "([ക-ഹളഴറൺ-ൿ](?:്[ക-ഹളഴറൺ-ൿ])*)"; 
-                const leftVowels = "([\u0D46\u0D47\u0D48])"; 
-                text = text.replace(new RegExp(consGroup + leftVowels, "g"), "$2$1");
 
                 // 4. Complete FML Character Map
                 const fmlMap = {
@@ -636,8 +639,8 @@
                     '\u0D02': 'w', // ം (Anusvaram)
                     '\u0D03': 'x', // ഃ (Visargam)
                     
-                    // Chillus (ൺ = ¬ എന്ന് അപ്ഡേറ്റ് ചെയ്തിട്ടുണ്ട്)
-                    'ർ': 'À', 'ൽ': 'Â', 'ൾ': 'Ä', 'ൺ': '¬', 'ൻ': '³'
+                    // Atomic Chillus
+                    'ർ': 'À', 'ൽ': 'Â', 'ൾ': 'Ä', 'ൺ': 'Æ', 'ൻ': '³'
                 };
 
                 let fmlOutput = "";
