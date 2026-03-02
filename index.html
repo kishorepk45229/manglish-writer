@@ -68,7 +68,6 @@
         .file-title-wrapper { display: flex; align-items: center; gap: 8px; overflow: hidden; white-space: nowrap; }
         .file-title-wrapper span { overflow: hidden; text-overflow: ellipsis; }
         
-        /* Delete File Button */
         .btn-delete-file { background: transparent; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; display: none; padding: 2px; border-radius: 4px; transition: 0.2s;}
         .btn-delete-file:hover { background: #fee2e2; }
         .file-item:hover .btn-delete-file { display: block; }
@@ -124,7 +123,7 @@
         .table-btn { width: 100%; background: var(--accent-color); color: var(--text-on-accent); border: none; padding: 8px; border-radius: 4px; font-weight: 600; cursor: pointer; }
 
         /* Save Status Indicator */
-        .save-status { font-size: 0.8rem; color: var(--text-secondary); font-weight: 500; display: flex; align-items: center; gap: 5px; margin-left: 10px; border-left: 1px solid var(--border-color); padding-left: 10px;}
+        .save-status { font-size: 0.8rem; color: var(--text-secondary); font-weight: 500; display: flex; align-items: center; gap: 5px; margin-left: auto; padding-left: 10px;}
 
         /* Suggestion Bar */
         .suggestion-bar { padding: 12px 30px; display: flex; gap: 10px; align-items: center; min-height: 56px; background: var(--bg-sidebar); border-bottom: 1px solid var(--border-color); overflow-x: auto; white-space: nowrap; }
@@ -151,10 +150,13 @@
         .action-btn i { font-size: 1.2rem; }
         .btn-dtp { background-color: var(--accent-light); color: var(--text-on-accent); border-color: var(--accent-color); }
 
-        /* Language Toggle - Restored Pill Shape */
+        /* Language & Keyboard Toggle (Pill Shape) */
         .lang-toggle { display: flex; background: var(--bg-sidebar); border-radius: 20px; border: 1px solid var(--border-color); overflow: hidden; }
         .lang-btn { padding: 8px 16px; border: none; background: transparent; color: var(--text-primary); cursor: pointer; font-size: 0.9rem; transition: 0.2s; }
         .lang-btn.active { background: var(--accent-color); color: var(--text-on-accent); font-weight: 600; }
+        
+        .keyboard-toggle { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); background: var(--bg-sidebar); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border-color); }
+        .keyboard-toggle label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
 
         /* MODAL POPUP */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); display: none; justify-content: center; align-items: center; z-index: 2000; }
@@ -173,7 +175,7 @@
             .sidebar-overlay.open { display: block; }
             .workspace { width: 100%; }
             .menu-toggle { display: block; }
-            .save-status { width: 100%; justify-content: center; border-left: none; padding-left: 0; margin-left: 0; margin-top: 10px;}
+            .save-status { width: 100%; justify-content: center; margin-top: 10px;}
         }
     </style>
 </head>
@@ -181,7 +183,7 @@
 
     <div class="login-overlay" id="login-overlay">
         <div class="login-box">
-            <div class="login-logo">ള</div>
+            <div class="login-logo">തൂ</div>
             <h1 class="login-title">Welcome to Thooval</h1>
             <p class="login-subtitle">Sign in to save your documents to the cloud and access them from anywhere.</p>
             <button class="btn-google" id="btn-google-login">
@@ -195,7 +197,7 @@
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <aside class="sidebar" id="sidebar">
-        <div class="brand"><div class="brand-logo">തൂ</div> Thooval</div>
+        <div class="brand"><div class="brand-logo">ത</div> Thooval</div>
         <button class="new-file-btn" id="btn-new-file"><i class="ph ph-plus"></i> New File</button>
         
         <div class="file-list" id="cloud-file-list">
@@ -305,6 +307,12 @@
                     <button class="lang-btn active" id="btn-lang-ml">മലയാളം</button>
                     <button class="lang-btn" id="btn-lang-en">English</button>
                 </div>
+                
+                <div class="keyboard-toggle">
+                    <label><input type="radio" name="kbd" value="phonetic" checked> Phonetic</label>
+                    <label><input type="radio" name="kbd" value="inscript"> Inscript</label>
+                </div>
+
                 <button class="action-btn" id="btn-voice"><i class="ph ph-microphone"></i> Voice Typing</button>
             </div>
             <div class="status-group">
@@ -331,7 +339,7 @@
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // താങ്കളുടെ കൃത്യമായ Firebase Keys
+        // Your exact Firebase Keys
         const firebaseConfig = {
             apiKey: "AIzaSyBQFJ1lqnSdqFKEGnE4TzjfBdnxrrlG740",
             authDomain: "thooval-6b344.firebaseapp.com",
@@ -355,9 +363,9 @@
             if (user) {
                 currentUserId = user.uid;
                 $('#user-name-display').text(user.displayName); 
-                $('#user-email-display').text(user.email); // Email Added Here
+                $('#user-email-display').text(user.email); // User Email
                 $('#user-avatar').html(`<img src="${user.photoURL}" style="width:100%; border-radius:50%;">`); 
-                $('#btn-logout').show(); // Show Logout Button
+                $('#btn-logout').show(); 
 
                 $('#login-overlay').css('opacity', '0');
                 setTimeout(() => $('#login-overlay').hide(), 500);
@@ -389,7 +397,7 @@
         });
 
         $('#btn-logout').click(function() {
-            if(currentUserId && confirm("Do you want to sign out of your account?")) {
+            if(confirm("Do you want to sign out of your account?")) {
                 signOut(auth);
             }
         });
@@ -433,7 +441,7 @@
 
         // --- DELETE FILE BUTTON ---
         $(document).on('click', '.btn-delete-file', async function(e) {
-            e.stopPropagation(); // Prevents opening the file when clicking delete
+            e.stopPropagation(); 
             if(!currentUserId) return alert("Cannot delete guest file.");
             
             let fileId = $(this).closest('.file-item').attr('data-id');
@@ -474,7 +482,6 @@
                     }
                     let isActive = (currentFileId === docSnap.id) ? 'active' : '';
                     
-                    // Note the Delete Button injection here
                     fileList.append(`
                         <div class="file-item ${isActive}" data-id="${docSnap.id}">
                             <div class="file-title-wrapper">
@@ -577,6 +584,7 @@
             $('#sidebar-overlay').click(() => { $('#sidebar, #sidebar-overlay').removeClass('open'); });
             $('#btn-lang-en').click(function() { currentLang = 'en'; $('.lang-btn').removeClass('active'); $(this).addClass('active'); clearSuggestions(); $('#editor').focus(); });
             $('#btn-lang-ml').click(function() { currentLang = 'ml'; $('.lang-btn').removeClass('active'); $(this).addClass('active'); clearSuggestions(); $('#editor').focus(); });
+            $('input[name="kbd"]').change(function() { currentKeyboard = $(this).val(); clearSuggestions(); $('#editor').focus(); });
             
             // Predictive Text & Typing 
             const nextWordDB = { 'ഞാൻ': ['വരുന്നു', 'പോവുകയാണ്', 'ഇന്ന്'], 'നിങ്ങൾ': ['എവിടെയാണ്', 'എന്താണ്', 'വരുന്നുണ്ടോ'], 'നമസ്കാരം': ['എന്തൊക്കെയുണ്ട്', 'സ്വാഗതം', 'കൂട്ടുകാരേ'], 'എന്താണ്': ['വിശേഷം', 'പരിപാടി', 'പേര്'], 'എനിക്ക്': ['വേണം', 'ഇഷ്ടമാണ്', 'അറിയാം'], 'വളരെ': ['നല്ലത്', 'സന്തോഷം', 'നന്ദി'] };
@@ -593,7 +601,7 @@
             }
 
             $('#editor').on('input', function() {
-                if (currentLang === 'en') return;
+                if (currentLang === 'en' || currentKeyboard === 'inscript') return;
                 let info = getWordBeforeCaret();
                 if (info && info.type === 'phonetic') { activeWordInfo = info; isPredicting = false; fetchSuggestions(info.word); } 
                 else if (info && info.type === 'predict') { activeWordInfo = null; isPredicting = true; renderSuggestions(info.words, true); } 
@@ -601,7 +609,7 @@
             });
 
             $('#editor').on('keydown', function(e) {
-                if (currentLang === 'en') return;
+                if (currentLang === 'en' || currentKeyboard === 'inscript') return;
                 let $active = $('.suggestion-item.active');
                 if ($('.suggestion-item').length > 0) {
                     if (e.key === 'Enter' || (e.key === ' ' && !isPredicting)) { e.preventDefault(); if ($active.length) $active.click(); } 
