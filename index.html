@@ -183,7 +183,7 @@
 
     <div class="login-overlay" id="login-overlay">
         <div class="login-box">
-            <div class="login-logo">ത</div>
+            <div class="login-logo">മ</div>
             <h1 class="login-title">Welcome to Thooval</h1>
             <p class="login-subtitle">Sign in to save your documents to the cloud and access them from anywhere.</p>
             <button class="btn-google" id="btn-google-login">
@@ -197,7 +197,7 @@
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <aside class="sidebar" id="sidebar">
-        <div class="brand"><div class="brand-logo">ത</div> Thooval</div>
+        <div class="brand"><div class="brand-logo">മ</div> Thooval</div>
         <button class="new-file-btn" id="btn-new-file"><i class="ph ph-plus"></i> New File</button>
         
         <div class="file-list" id="cloud-file-list">
@@ -339,7 +339,7 @@
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Your exact Firebase Keys
+        // Firebase Keys
         const firebaseConfig = {
             apiKey: "AIzaSyBQFJ1lqnSdqFKEGnE4TzjfBdnxrrlG740",
             authDomain: "thooval-6b344.firebaseapp.com",
@@ -357,13 +357,14 @@
         let currentFileId = null;
         let saveTimeout;
         let currentLang = 'ml'; 
+        let currentKeyboard = 'phonetic';
 
         // --- AUTH OBSERVER ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUserId = user.uid;
                 $('#user-name-display').text(user.displayName); 
-                $('#user-email-display').text(user.email); // User Email
+                $('#user-email-display').text(user.email); 
                 $('#user-avatar').html(`<img src="${user.photoURL}" style="width:100%; border-radius:50%;">`); 
                 $('#btn-logout').show(); 
 
@@ -513,7 +514,9 @@
             });
         });
 
-        // --- STANDARD JS LOGIC (Tools, Dictionary, Transliterator) ---
+        // ==========================================
+        // TEXT EDITOR & MALAYALAM TYPING LOGIC
+        // ==========================================
         $(document).ready(function() {
             $('#editor').focus();
             
@@ -522,7 +525,7 @@
                 $(this).html($('body').hasClass('dark-theme') ? '<i class="ph ph-sun"></i>' : '<i class="ph ph-moon"></i>');
             });
 
-            // Insert Media
+            // Tools
             $('#btn-image').click(() => $('#image-upload').click());
             $('#image-upload').change(function() {
                 let file = this.files[0];
@@ -533,7 +536,6 @@
                 }
             });
 
-            // Insert Table
             $('#btn-table-toggle').click(function(e) { e.stopPropagation(); $('#table-popup').toggleClass('show'); });
             $(document).click(function() { $('#table-popup').removeClass('show'); });
             $('#table-popup').click(function(e) { e.stopPropagation(); });
@@ -545,7 +547,6 @@
                 $('#editor').focus(); document.execCommand('insertHTML', false, html); $('#table-popup').removeClass('show');
             });
 
-            // Print
             $('#btn-print').click(function() {
                 let content = $('#editor').html();
                 let printWin = window.open('', '', 'height=700,width=900');
@@ -553,13 +554,20 @@
                 printWin.document.close(); setTimeout(() => { printWin.print(); printWin.close(); }, 500);
             });
 
-            // Restore Selection specific for Dictionary
+            // Selection Memory
             let savedRange = null;
             function saveSelection() { let sel = window.getSelection(); if (sel.getRangeAt && sel.rangeCount) savedRange = sel.getRangeAt(0); }
             function restoreSelection() { if (savedRange) { let sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(savedRange); } }
             $('#editor').on('keyup mouseup blur', saveSelection);
 
-            // Dictionary API
+            // Toggles
+            $('#menu-toggle').click(() => { $('#sidebar, #sidebar-overlay').addClass('open'); });
+            $('#sidebar-overlay').click(() => { $('#sidebar, #sidebar-overlay').removeClass('open'); });
+            $('#btn-lang-en').click(function() { currentLang = 'en'; $('.lang-btn').removeClass('active'); $(this).addClass('active'); clearSuggestions(); $('#editor').focus(); });
+            $('#btn-lang-ml').click(function() { currentLang = 'ml'; $('.lang-btn').removeClass('active'); $(this).addClass('active'); clearSuggestions(); $('#editor').focus(); });
+            $('input[name="kbd"]').change(function() { currentKeyboard = $(this).val(); clearSuggestions(); $('#editor').focus(); });
+            
+            // Dictionary
             let dictTimer;
             $('#dict-input').on('input', function() {
                 let word = $(this).val().trim();
@@ -579,14 +587,7 @@
                 $('#editor').focus(); restoreSelection(); document.execCommand("insertText", false, translatedWord + " "); saveSelection(); $('#dict-input').val(''); $('#dict-results').empty();
             });
 
-            // Lang Toggles
-            $('#menu-toggle').click(() => { $('#sidebar, #sidebar-overlay').addClass('open'); });
-            $('#sidebar-overlay').click(() => { $('#sidebar, #sidebar-overlay').removeClass('open'); });
-            $('#btn-lang-en').click(function() { currentLang = 'en'; $('.lang-btn').removeClass('active'); $(this).addClass('active'); clearSuggestions(); $('#editor').focus(); });
-            $('#btn-lang-ml').click(function() { currentLang = 'ml'; $('.lang-btn').removeClass('active'); $(this).addClass('active'); clearSuggestions(); $('#editor').focus(); });
-            $('input[name="kbd"]').change(function() { currentKeyboard = $(this).val(); clearSuggestions(); $('#editor').focus(); });
-            
-            // Predictive Text & Typing 
+            // --- RESTORED: PHONETIC TRANSLITERATION (THE FIX) ---
             const nextWordDB = { 'ഞാൻ': ['വരുന്നു', 'പോവുകയാണ്', 'ഇന്ന്'], 'നിങ്ങൾ': ['എവിടെയാണ്', 'എന്താണ്', 'വരുന്നുണ്ടോ'], 'നമസ്കാരം': ['എന്തൊക്കെയുണ്ട്', 'സ്വാഗതം', 'കൂട്ടുകാരേ'], 'എന്താണ്': ['വിശേഷം', 'പരിപാടി', 'പേര്'], 'എനിക്ക്': ['വേണം', 'ഇഷ്ടമാണ്', 'അറിയാം'], 'വളരെ': ['നല്ലത്', 'സന്തോഷം', 'നന്ദി'] };
             let activeWordInfo = null; let isPredicting = false;
 
@@ -619,24 +620,54 @@
             });
 
             function fetchSuggestions(word) { $.get(`https://inputtools.google.com/request?text=${word}&itc=ml-t-i0-und&num=5&cp=0&cs=1&ie=utf-8&oe=utf-8`, function(res) { if (res[0] === 'SUCCESS') renderSuggestions(res[1][0][1], false); }); }
+            
             function renderSuggestions(words, isPredictionMode) {
                 $('#suggestion-bar').empty();
                 if (isPredictionMode) $('#suggestion-bar').append(`<span style="color:var(--accent-color); font-size:0.8rem; margin-right:5px;">✨ Smart Suggest:</span>`);
                 words.forEach((word, index) => {
                     let $badge = $(`<span class="suggestion-item ${index === 0 ? 'active' : ''} ${isPredictionMode ? 'predictive' : ''}">${word}</span>`);
                     $badge.on('mousedown', function(e) { e.preventDefault(); });
-                    $badge.on('click', function() { if(isPredictionMode) { document.execCommand("insertText", false, word + " "); saveSelection(); } else replaceWord(word); });
+                    $badge.on('click', function() { 
+                        if(isPredictionMode) { 
+                            $('#editor').focus(); restoreSelection(); document.execCommand("insertText", false, word + " "); saveSelection(); clearSuggestions();
+                        } else replaceWord(word); 
+                    });
                     $('#suggestion-bar').append($badge);
                 });
             }
 
+            // THIS IS THE FIXED FUNCTION
             function replaceWord(malayalamWord) {
-                if (!activeWordInfo) return; let sel = window.getSelection(); let range = document.createRange();
-                range.setStart(activeWordInfo.node, activeWordInfo.startOffset); range.setEnd(activeWordInfo.node, activeWordInfo.endOffset);
-                sel.removeAllRanges(); sel.addRange(range);
-                document.execCommand("insertText", false, malayalamWord + " "); clearSuggestions(); saveSelection();
+                if (!activeWordInfo) return; 
+                let sel = window.getSelection(); 
+                let range = document.createRange();
+                range.setStart(activeWordInfo.node, activeWordInfo.startOffset); 
+                range.setEnd(activeWordInfo.node, activeWordInfo.endOffset);
+                range.deleteContents(); // Ensure safe deletion of english letters
+                
+                let textNode = document.createTextNode(malayalamWord + "\u00A0"); // Insert Malayalam word safely
+                range.insertNode(textNode);
+                range.setStartAfter(textNode);
+                sel.removeAllRanges(); 
+                sel.addRange(range);
+                
+                clearSuggestions(); 
+                saveSelection();
             }
+
             function clearSuggestions() { $('#suggestion-bar').html('<span class="suggestion-placeholder">Type in English (e.g., \'namaskaram\')...</span>'); activeWordInfo = null; isPredicting = false; }
+
+            // Inscript Keyboard
+            const inscriptMap = { 'D':'അ', 'E':'ആ', 'F':'ഇ', 'R':'ഈ', 'G':'ഉ', 'T':'ഊ', '+':'ഋ', 'S':'എ', 'W':'ഏ', 'A':'ഒ', 'Q':'ഓ', 'k':'ക', 'K':'ഖ', 'i':'ഗ', 'I':'ഘ', 'U':'ങ', ';':'ച', ':':'ഛ', 'p':'ജ', 'P':'ഝ', '}':'ഞ', "'":'ട', '"':'ഠ', '[':'ഡ', '{':'ഢ', 'C':'ണ', 'l':'ത', 'L':'ഥ', 'o':'ദ', 'O':'ധ', 'v':'ന', 'h':'പ', 'H':'ഫ', 'y':'ബ', 'Y':'ഭ', 'c':'മ', '/':'യ', 'j':'ര', 'n':'ല', 'b':'വ', 'M':'ശ', '<':'ഷ', 'm':'സ', 'u':'ഹ', 'N':'ള', '>':'ഴ', 'J':'റ', 'e':'ാ', 'f':'ി', 'r':'ീ', 'g':'ു', 't':'ൂ', '=':'ൃ', 's':'െ', 'w':'േ', 'a':'ൊ', 'q':'ോ', 'd':'്', 'X':'ം', '_':'ഃ' };
+            $('#editor').on('keypress', function(e) {
+                if (currentLang === 'ml' && currentKeyboard === 'inscript') {
+                    let char = String.fromCharCode(e.which);
+                    if (inscriptMap[char]) { 
+                        e.preventDefault(); 
+                        $('#editor').focus(); restoreSelection(); document.execCommand("insertText", false, inscriptMap[char]); saveSelection();
+                    }
+                }
+            });
 
             // Voice Typing
             let recognition; let isRecording = false;
