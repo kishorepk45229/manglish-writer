@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="ml">
 <head>
-    <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#a3e635">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thooval | Advanced Manglish Rich Editor</title>
@@ -48,11 +46,16 @@
         .login-box { background: var(--bg-sidebar); border: 1px solid var(--border-color); padding: 40px; border-radius: 16px; box-shadow: var(--shadow); text-align: center; max-width: 400px; width: 90%; position: relative; z-index: 10; backdrop-filter: blur(10px); }
         .login-logo { width: 60px; height: 60px; background-color: var(--accent-color); color: var(--text-on-accent); border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 2rem; font-weight: bold; margin: 0 auto 20px auto; box-shadow: 0 4px 10px rgba(163, 230, 53, 0.4); }
         .login-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 10px; color: var(--text-primary); }
-        .login-subtitle { font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 30px; line-height: 1.5; }
-        .btn-google { background: #ffffff; color: #333; border: 1px solid #ddd; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; transition: 0.2s; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .login-subtitle { font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 25px; line-height: 1.5; }
+        
+        .btn-google { background: #ffffff; color: #333; border: 1px solid #ddd; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; transition: 0.2s; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
         .btn-google:hover { background: #f8f9fa; }
         .btn-google img { width: 20px; }
-        .btn-guest { background: transparent; color: var(--text-secondary); border: none; font-size: 0.9rem; cursor: pointer; text-decoration: underline; transition: 0.2s; }
+        
+        .btn-outline-login { background: transparent; color: var(--text-primary); border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; transition: 0.2s; margin-bottom: 15px;}
+        .btn-outline-login:hover { background: var(--border-color); }
+        
+        .btn-guest { background: transparent; color: var(--text-secondary); border: none; font-size: 0.9rem; cursor: pointer; text-decoration: underline; transition: 0.2s; display: block; width: 100%; margin-top: 15px;}
         .btn-guest:hover { color: var(--text-primary); }
 
         /* --- MOBILE TOP HEADER --- */
@@ -67,13 +70,17 @@
 
         .file-list { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 30vh; }
         .list-header { font-size: 0.75rem; text-transform: uppercase; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px; letter-spacing: 0.5px; }
+        
         .file-item { padding: 10px 12px; border-radius: var(--radius); cursor: pointer; font-weight: 500; font-size: 0.9rem; display: flex; align-items: center; justify-content: space-between; color: var(--text-secondary); transition: 0.2s; }
         .file-item.active { background-color: var(--accent-light); color: var(--text-on-accent); border-color: var(--accent-color); }
         .file-title-wrapper { display: flex; align-items: center; gap: 8px; overflow: hidden; white-space: nowrap; }
         .file-title-wrapper span { overflow: hidden; text-overflow: ellipsis; }
-        .btn-delete-file { background: transparent; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; display: none; padding: 2px; border-radius: 4px; transition: 0.2s;}
-        .btn-delete-file:hover { background: #fee2e2; }
-        .file-item:hover .btn-delete-file { display: block; }
+        
+        .file-item-actions { display: none; gap: 4px; }
+        .btn-rename-file, .btn-delete-file { background: transparent; border: none; font-size: 1.1rem; cursor: pointer; padding: 2px; border-radius: 4px; transition: 0.2s;}
+        .btn-rename-file { color: #3b82f6; } .btn-rename-file:hover { background: #dbeafe; }
+        .btn-delete-file { color: #ef4444; } .btn-delete-file:hover { background: #fee2e2; }
+        .file-item:hover .file-item-actions { display: flex; }
         
         /* --- DICTIONARY --- */
         .dictionary-section { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 10px; flex-grow: 1; }
@@ -100,9 +107,9 @@
         .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 999; }
 
         /* --- MAIN WORKSPACE --- */
-        .workspace { flex-grow: 1; display: flex; flex-direction: column; background-color: var(--bg-main); height: 100vh; position: relative; width: calc(100% - 260px); }
+        .workspace { flex-grow: 1; display: flex; flex-direction: column; background-color: var(--bg-main); height: 100vh; position: relative; width: calc(100% - 260px); overflow: hidden; }
         
-        .toolbar { min-height: 60px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; padding: 10px 20px; gap: 8px; flex-wrap: wrap; background: var(--bg-main); }
+        .toolbar { flex-shrink: 0; min-height: 60px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; padding: 10px 20px; gap: 8px; flex-wrap: wrap; background: var(--bg-main); }
         .toolbar-primary { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .toolbar-secondary { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .toolbar-expand-btn { display: none; }
@@ -132,15 +139,15 @@
 
         .save-status { font-size: 0.8rem; color: var(--text-secondary); font-weight: 500; display: flex; align-items: center; gap: 5px; margin-left: auto; padding-left: 10px;}
 
-        .suggestion-bar { padding: 12px 30px; display: flex; gap: 10px; align-items: center; min-height: 56px; background: var(--bg-sidebar); border-bottom: 1px solid var(--border-color); overflow-x: auto; white-space: nowrap; }
+        .suggestion-bar { flex-shrink: 0; padding: 12px 30px; display: flex; gap: 10px; align-items: center; min-height: 56px; background: var(--bg-sidebar); border-bottom: 1px solid var(--border-color); overflow-x: auto; white-space: nowrap; }
         .suggestion-placeholder { color: var(--text-secondary); font-size: 0.9rem; font-style: italic; }
         .suggestion-item { background: var(--bg-main); border: 1px solid var(--border-color); padding: 6px 16px; border-radius: 20px; cursor: pointer; font-family: 'Manjari', sans-serif; font-size: 1.1rem; transition: 0.2s; display: inline-block; color: var(--text-primary); }
         .suggestion-item.active, .suggestion-item:hover { background: var(--accent-color); color: var(--text-on-accent); border-color: var(--accent-color); }
         .suggestion-item.predictive { background: #e0f2fe; border-color: #38bdf8; color: #0369a1; font-size: 0.95rem; }
         body.dark-theme .suggestion-item.predictive { background: #0c4a6e; border-color: #0284c7; color: #bae6fd; }
 
-        /* Editor Wrapper for Better Read Only mode integration */
-        #editor-container { flex-grow: 1; overflow-y: auto; width: 100%; background: var(--bg-main); position: relative;}
+        /* EDITOR CONTAINER - SCROLL FIX */
+        #editor-container { flex-grow: 1; overflow-y: auto; width: 100%; background: var(--bg-main); min-height: 0; position: relative;}
         #editor-wrapper-inner { width: 100%; min-height: 100%; display: flex; flex-direction: column; }
         #editor { flex-grow: 1; padding: 40px; border: none; outline: none; font-family: 'Manjari', sans-serif; font-size: 18px; line-height: 1.8; color: var(--text-primary); }
         #editor:empty:before { content: attr(placeholder); color: var(--text-secondary); opacity: 0.6; pointer-events: none; }
@@ -162,7 +169,7 @@
         #editor ul, #editor ol { margin-left: 20px; margin-bottom: 10px; }
 
         /* --- BTM STATUS BAR --- */
-        .status-bar { min-height: 60px; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 10px 30px; background-color: var(--bg-main); flex-wrap: wrap; gap: 10px; }
+        .status-bar { flex-shrink: 0; min-height: 60px; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 10px 30px; background-color: var(--bg-main); flex-wrap: wrap; gap: 10px; }
         .status-bar-content { display: flex; justify-content: space-between; width: 100%; align-items: center; flex-wrap: wrap; gap: 10px; }
         .status-expand-btn { display: none; }
         .status-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
@@ -207,7 +214,8 @@
         .read-only-cover { display: none; height: 60vh; width: 100%; position: relative; overflow: hidden; align-items: center; justify-content: center; text-align: center; color: white; background: linear-gradient(135deg, #1e293b, #4b5563); border-radius: 12px 12px 0 0; }
         .read-only-cover::before { content: ""; position: absolute; top:0; left:0; right:0; bottom:0; background: url('https://images.unsplash.com/photo-1557682250-33bd709cbe85?q=80&w=1200&auto=format&fit=crop') center/cover; opacity: 0.4; mix-blend-mode: overlay;}
         .read-only-cover-content { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; gap: 15px; padding: 20px;}
-        .cover-title { font-size: 3.5rem; font-weight: 700; font-family: 'Manjari', sans-serif; text-shadow: 0 4px 10px rgba(0,0,0,0.5); margin-bottom: 20px; line-height: 1.2;}
+        .cover-title { font-size: 3.5rem; font-weight: 700; font-family: 'Manjari', sans-serif; text-shadow: 0 4px 10px rgba(0,0,0,0.5); margin-bottom: 5px; line-height: 1.2;}
+        .cover-author { font-size: 1.1rem; font-weight: 500; font-family: 'Inter', sans-serif; opacity: 0.9; margin-bottom: 20px; display: flex; align-items: center; gap: 5px;}
         .cover-brand { display: flex; align-items: center; gap: 10px; font-size: 1.1rem; font-weight: 600; font-family: 'Inter', sans-serif; background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 30px; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.2);}
         .cover-brand .logo { background: var(--accent-color); color: var(--text-on-accent); width: 28px; height: 28px; border-radius: 6px; display: flex; justify-content: center; align-items: center; font-weight: bold; }
 
@@ -219,14 +227,14 @@
         .read-only-mode .read-only-badge { display: flex; align-items: center; gap: 8px;}
         .read-only-badge:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(163, 230, 53, 0.5); }
 
-        /* --- MOBILE RESPONSIVE TWEAKS (FIXED ARROW TOGGLE) --- */
+        /* --- MOBILE RESPONSIVE TWEAKS (FIXED ARROW & SCROLL) --- */
         @media (max-width: 768px) {
             .sidebar { position: fixed; left: -260px; top: 0; }
             .sidebar.open { left: 0; }
             .sidebar-overlay.open { display: block; }
             .workspace { width: 100%; }
             
-            .mobile-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: var(--bg-sidebar); border-bottom: 1px solid var(--border-color); }
+            .mobile-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: var(--bg-sidebar); border-bottom: 1px solid var(--border-color); flex-shrink: 0;}
             .mobile-menu-toggle { background: none; border: none; font-size: 1.5rem; color: var(--text-primary); cursor: pointer; }
             .mobile-brand { display: flex; align-items: center; gap: 8px; font-size: 1.1rem; font-weight: 700; color: var(--text-primary); }
             .mobile-user-profile { display: flex; align-items: center; gap: 10px; }
@@ -234,7 +242,6 @@
             .toolbar { flex-direction: column; align-items: stretch; padding: 10px 15px; }
             .toolbar-primary { display: flex; width: 100%; justify-content: flex-start; }
             
-            /* FIXED MOBILE ARROW EXPAND */
             .toolbar-secondary { display: none !important; width: 100%; border-top: 1px dashed var(--border-color); padding-top: 10px; margin-top: 5px; justify-content: flex-start; }
             .toolbar-secondary.expanded { display: flex !important; }
             
@@ -271,13 +278,22 @@
         </div>
 
         <div class="login-box">
-            <div class="login-logo">തൂ</div>
+            <div class="login-logo">ത</div>
             <h1 class="login-title">Welcome to Thooval</h1>
             <p class="login-subtitle">Sign in to save your documents to the cloud and access them from anywhere.</p>
+            
+            <label style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 15px; font-size: 0.9rem; color: var(--text-primary); cursor: pointer;">
+                <input type="checkbox" id="keep-signed-in" checked> Keep me signed in
+            </label>
+
             <button class="btn-google" id="btn-google-login">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google Logo">
                 Sign in with Google
             </button>
+            <button class="btn-outline-login" id="btn-other-account">
+                Sign in with another account
+            </button>
+            
             <button class="btn-guest" id="btn-guest-login">Continue as Guest (Local Save Only)</button>
         </div>
     </div>
@@ -285,7 +301,7 @@
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <aside class="sidebar" id="sidebar">
-        <div class="brand"><div class="brand-logo">തൂ</div> Thooval</div>
+        <div class="brand"><div class="brand-logo">ത</div> Thooval</div>
         <button class="new-file-btn" id="btn-new-file"><i class="ph ph-plus"></i> New File</button>
         
         <div class="file-list" id="cloud-file-list">
@@ -318,7 +334,7 @@
         <header class="mobile-header">
             <button class="mobile-menu-toggle" id="mobile-menu-btn"><i class="ph ph-list"></i></button>
             <div class="mobile-brand">
-                <div class="brand-logo" style="width:26px; height:26px; font-size:1rem;">തൂ</div> Thooval
+                <div class="brand-logo" style="width:26px; height:26px; font-size:1rem;">ത</div> Thooval
             </div>
             <div class="mobile-user-profile">
                 <div class="avatar mobile-avatar" id="mobile-user-avatar" style="width:28px; height:28px;">G</div>
@@ -430,7 +446,8 @@
                     <div class="read-only-cover-content">
                         <div class="cover-brand"><div class="logo">തൂ</div> Thooval Story</div>
                         <h1 class="cover-title" id="cover-title">Story Title</h1>
-                        <div style="font-size: 0.9rem; opacity: 0.8; font-family: 'Inter', sans-serif;"><i class="ph ph-caret-double-down" style="animation: pulse 1.5s infinite;"></i> Scroll to Read</div>
+                        <div class="cover-author" id="cover-author"></div>
+                        <div style="font-size: 0.9rem; opacity: 0.8; font-family: 'Inter', sans-serif; margin-top:10px;"><i class="ph ph-caret-double-down" style="animation: pulse 1.5s infinite;"></i> Scroll to Read</div>
                     </div>
                 </div>
                 
@@ -478,7 +495,7 @@
                     <span>Share Public Link</span>
                     <button class="close-modal" id="close-share-modal">&times;</button>
                 </div>
-                <p style="font-size: 0.85rem; color: var(--text-secondary);">Anyone with this link can view your document in read-only mode. (Note: Ensure Firestore rules allow public reads)</p>
+                <p style="font-size: 0.85rem; color: var(--text-secondary);">Anyone with this link can view your document in read-only mode.</p>
                 <input type="text" id="share-link-input" readonly style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-sidebar); color:var(--text-primary); outline:none;">
                 <button class="modal-btn" id="copy-share-link-btn">📋 Copy Link</button>
             </div>
@@ -515,7 +532,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -551,9 +568,11 @@
             const fileRef = doc(db, `users/${viewUser}/files/${viewFile}`);
             getDoc(fileRef).then((docSnap) => {
                 if (docSnap.exists()) {
-                    $('#editor').html(docSnap.data().content);
-                    document.title = docSnap.data().title + " | Thooval";
-                    $('#cover-title').text(docSnap.data().title);
+                    let data = docSnap.data();
+                    $('#editor').html(data.content);
+                    document.title = data.title + " | Thooval";
+                    $('#cover-title').text(data.title);
+                    $('#cover-author').html('<i class="ph ph-pencil-simple" style="margin-right:5px;"></i> By ' + (data.authorName || 'Author'));
                     $('#read-only-cover').css('display', 'flex'); 
                 } else {
                     $('#editor').html('<p style="text-align:center; margin-top:50px;">Document not found or deleted by owner.</p>');
@@ -593,12 +612,26 @@
             }
         });
 
-        $('#btn-google-login').click(function() {
-            signInWithPopup(auth, new GoogleAuthProvider()).catch((error) => {
+        // --- NEW LOGIN SYSTEM WITH ACCOUNT SELECTION & PERSISTENCE ---
+        async function handleLogin(promptSelectAccount = false) {
+            const keepSignedIn = $('#keep-signed-in').is(':checked');
+            const persistenceType = keepSignedIn ? browserLocalPersistence : browserSessionPersistence;
+            
+            try {
+                await setPersistence(auth, persistenceType);
+                const provider = new GoogleAuthProvider();
+                if (promptSelectAccount) {
+                    provider.setCustomParameters({ prompt: 'select_account' });
+                }
+                await signInWithPopup(auth, provider);
+            } catch (error) {
                 console.error("Login Error:", error);
                 alert("Login failed! Ensure your domain is added to Firebase Authorized Domains.");
-            });
-        });
+            }
+        }
+
+        $('#btn-google-login').click(() => handleLogin(false));
+        $('#btn-other-account').click(() => handleLogin(true));
 
         $('#btn-guest-login').click(function() {
             $('#login-overlay').css('opacity', '0');
@@ -639,13 +672,35 @@
             let newTitle = prompt("Enter new file name:", "Untitled Document");
             if(!newTitle) return;
             try {
-                const docRef = await addDoc(collection(db, `users/${currentUserId}/files`), { title: newTitle, content: "", lastModified: serverTimestamp() });
+                const docRef = await addDoc(collection(db, `users/${currentUserId}/files`), { 
+                    title: newTitle, 
+                    content: "", 
+                    authorName: auth.currentUser.displayName || 'Author',
+                    lastModified: serverTimestamp() 
+                });
                 currentFileId = docRef.id;
                 $('#editor').html(''); 
                 if(window.innerWidth <= 768) { $('#sidebar, #sidebar-overlay').removeClass('open'); }
             } catch (error) { console.error("Error creating file:", error); }
         });
 
+        // --- RENAME FILE LOGIC ---
+        $(document).on('click', '.btn-rename-file', async function(e) {
+            e.stopPropagation();
+            if(!currentUserId || $(this).closest('.file-item').attr('data-id') === 'local-draft') return alert("Cannot rename guest file.");
+            
+            let fileId = $(this).closest('.file-item').attr('data-id');
+            let oldTitle = $(this).closest('.file-item').find('span').text();
+            let newTitle = prompt("Enter new file name:", oldTitle);
+            
+            if(newTitle && newTitle.trim() !== "" && newTitle !== oldTitle) {
+                try {
+                    await updateDoc(doc(db, `users/${currentUserId}/files`, fileId), { title: newTitle });
+                } catch(error) { console.error("Error renaming file:", error); }
+            }
+        });
+
+        // --- DELETE FILE BUTTON ---
         $(document).on('click', '.btn-delete-file', async function(e) {
             e.stopPropagation(); 
             if(!currentUserId) return alert("Cannot delete guest file.");
@@ -667,7 +722,7 @@
             if(!currentUserId || !currentFileId || currentFileId === 'local-draft') {
                 return alert("Please log in with Google and save the file to cloud before sharing.");
             }
-            let shareUrl = window.location.origin + window.location.pathname + '?u=' + currentUserId + '&f=' + currentFileId;
+            let shareUrl = 'https://kishorepk45229.github.io/Thooval/?u=' + currentUserId + '&f=' + currentFileId;
             $('#share-link-input').val(shareUrl);
             $('#share-modal').css('display', 'flex').hide().fadeIn(200);
         });
@@ -687,14 +742,28 @@
                 let fileList = $('#cloud-file-list');
                 fileList.html('<div class="list-header">My Documents</div>');
                 if (snapshot.empty) {
-                    addDoc(collection(db, `users/${currentUserId}/files`), { title: "Welcome Document", content: "<h1>നമസ്കാരം!</h1><p>ഇവിടെ മലയാളം ടൈപ്പ് ചെയ്തു തുടങ്ങാം...</p>", lastModified: serverTimestamp() }); return;
+                    addDoc(collection(db, `users/${currentUserId}/files`), { 
+                        title: "Welcome Document", 
+                        content: "<h1>നമസ്കാരം!</h1><p>ഇവിടെ മലയാളം ടൈപ്പ് ചെയ്തു തുടങ്ങാം...</p>", 
+                        authorName: auth.currentUser.displayName || 'Author',
+                        lastModified: serverTimestamp() 
+                    }); 
+                    return;
                 }
                 let isFirst = true;
                 snapshot.forEach(docSnap => {
                     let data = docSnap.data();
                     if (isFirst && !currentFileId) { currentFileId = docSnap.id; $('#editor').html(data.content); }
                     let isActive = (currentFileId === docSnap.id) ? 'active' : '';
-                    fileList.append(`<div class="file-item ${isActive}" data-id="${docSnap.id}"><div class="file-title-wrapper"><i class="ph ph-file-text"></i> <span>${data.title}</span></div><button class="btn-delete-file" title="Delete File"><i class="ph ph-trash"></i></button></div>`);
+                    fileList.append(`
+                        <div class="file-item ${isActive}" data-id="${docSnap.id}">
+                            <div class="file-title-wrapper"><i class="ph ph-file-text"></i> <span class="file-name-text">${data.title}</span></div>
+                            <div class="file-item-actions">
+                                <button class="btn-rename-file" title="Rename"><i class="ph ph-pencil-simple"></i></button>
+                                <button class="btn-delete-file" title="Delete"><i class="ph ph-trash"></i></button>
+                            </div>
+                        </div>
+                    `);
                     isFirst = false;
                 });
             });
@@ -722,7 +791,7 @@
                 $(this).html($('body').hasClass('dark-theme') ? '<i class="ph ph-sun"></i>' : '<i class="ph ph-moon"></i>');
             });
 
-            // Mobile & Dropdown Toggles (FIXED ARROW TOGGLE)
+            // Mobile & Dropdown Toggles (FIXED)
             $('#btn-toolbar-expand').click(function() { 
                 $('#toolbar-secondary').toggleClass('expanded'); 
                 $(this).find('i').toggleClass('ph-caret-down ph-caret-up'); 
@@ -924,7 +993,7 @@
                 if (isRecording) recognition.stop(); else { recognition.lang = currentLang === 'ml' ? 'ml-IN' : 'en-IN'; recognition.start(); }
             });
 
-            // --- FML CONVERSION (CORRECTED & RESTORED) ---
+            // --- FML CONVERSION ---
             $('#btn-copy-fml').on('click', function() {
                 let text = $('#editor')[0].innerText || $('#editor').text(); 
                 text = text.replace(/\u0D4A/g, "\u0D46\u0D3E").replace(/\u0D4B/g, "\u0D47\u0D3E").replace(/\u0D4C/g, "\u0D46\u0D57"); 
