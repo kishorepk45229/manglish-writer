@@ -217,7 +217,7 @@
         .read-only-mode .read-only-badge { display: flex; align-items: center; gap: 8px;}
         .read-only-badge:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(163, 230, 53, 0.5); }
 
-        /* --- MOBILE RESPONSIVE TWEAKS --- */
+        /* --- MOBILE RESPONSIVE TWEAKS (FIXED ARROW TOGGLE) --- */
         @media (max-width: 768px) {
             .sidebar { position: fixed; left: -260px; top: 0; }
             .sidebar.open { left: 0; }
@@ -231,14 +231,17 @@
             
             .toolbar { flex-direction: column; align-items: stretch; padding: 10px 15px; }
             .toolbar-primary { display: flex; width: 100%; justify-content: flex-start; }
-            .toolbar-secondary { display: none; width: 100%; border-top: 1px dashed var(--border-color); padding-top: 10px; margin-top: 5px; justify-content: flex-start; }
-            .toolbar-secondary.expanded { display: flex; }
+            
+            /* FIXED MOBILE ARROW EXPAND */
+            .toolbar-secondary { display: none !important; width: 100%; border-top: 1px dashed var(--border-color); padding-top: 10px; margin-top: 5px; justify-content: flex-start; }
+            .toolbar-secondary.expanded { display: flex !important; }
+            
             .toolbar-expand-btn { display: flex; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-secondary); font-size: 1.2rem; cursor: pointer; padding: 4px; margin-left: auto; }
             .save-status { margin: 10px auto 0 auto; width: 100%; justify-content: center; padding: 0; border: none; }
             
             .status-bar { padding: 10px 15px; flex-direction: column; }
-            .status-bar-content { display: none; flex-direction: column; width: 100%; gap: 15px; }
-            .status-bar-content.expanded { display: flex; }
+            .status-bar-content { display: none !important; flex-direction: column; width: 100%; gap: 15px; }
+            .status-bar-content.expanded { display: flex !important; }
             .status-expand-btn { display: flex; width: 100%; justify-content: center; background: none; border: none; font-size: 1rem; font-weight: 500; color: var(--text-secondary); cursor: pointer; padding: 5px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 5px;}
             .status-group { justify-content: center; width: 100%; }
 
@@ -266,7 +269,7 @@
         </div>
 
         <div class="login-box">
-            <div class="login-logo">ള</div>
+            <div class="login-logo">തൂ</div>
             <h1 class="login-title">Welcome to Thooval</h1>
             <p class="login-subtitle">Sign in to save your documents to the cloud and access them from anywhere.</p>
             <button class="btn-google" id="btn-google-login">
@@ -280,7 +283,7 @@
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <aside class="sidebar" id="sidebar">
-        <div class="brand"><div class="brand-logo">ള</div> Thooval</div>
+        <div class="brand"><div class="brand-logo">തൂ</div> Thooval</div>
         <button class="new-file-btn" id="btn-new-file"><i class="ph ph-plus"></i> New File</button>
         
         <div class="file-list" id="cloud-file-list">
@@ -313,7 +316,7 @@
         <header class="mobile-header">
             <button class="mobile-menu-toggle" id="mobile-menu-btn"><i class="ph ph-list"></i></button>
             <div class="mobile-brand">
-                <div class="brand-logo" style="width:26px; height:26px; font-size:1rem;">ള</div> Thooval
+                <div class="brand-logo" style="width:26px; height:26px; font-size:1rem;">തൂ</div> Thooval
             </div>
             <div class="mobile-user-profile">
                 <div class="avatar mobile-avatar" id="mobile-user-avatar" style="width:28px; height:28px;">G</div>
@@ -473,7 +476,7 @@
                     <span>Share Public Link</span>
                     <button class="close-modal" id="close-share-modal">&times;</button>
                 </div>
-                <p style="font-size: 0.85rem; color: var(--text-secondary);">Anyone with this link can view your document in read-only mode.</p>
+                <p style="font-size: 0.85rem; color: var(--text-secondary);">Anyone with this link can view your document in read-only mode. (Note: Ensure Firestore rules allow public reads)</p>
                 <input type="text" id="share-link-input" readonly style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-sidebar); color:var(--text-primary); outline:none;">
                 <button class="modal-btn" id="copy-share-link-btn">📋 Copy Link</button>
             </div>
@@ -555,7 +558,8 @@
                     $('#read-only-cover').hide();
                 }
             }).catch(e => {
-                $('#editor').html('<p style="text-align:center; margin-top:50px; color:red;">Error loading document.</p>');
+                console.error("Firebase Read Error:", e);
+                $('#editor').html('<p style="text-align:center; margin-top:50px; color:red;">Error loading document. Please check Firebase Security Rules.</p>');
                 $('#read-only-cover').hide();
             });
         } 
@@ -716,9 +720,15 @@
                 $(this).html($('body').hasClass('dark-theme') ? '<i class="ph ph-sun"></i>' : '<i class="ph ph-moon"></i>');
             });
 
-            // Mobile & Dropdown Toggles
-            $('#btn-toolbar-expand').click(function() { $('#toolbar-secondary').toggleClass('expanded'); $(this).find('i').toggleClass('ph-caret-down ph-caret-up'); });
-            $('#btn-status-expand').click(function() { $('#status-bar-content').toggleClass('expanded'); $(this).find('i').toggleClass('ph-caret-up ph-caret-down'); });
+            // Mobile & Dropdown Toggles (FIXED ARROW TOGGLE)
+            $('#btn-toolbar-expand').click(function() { 
+                $('#toolbar-secondary').toggleClass('expanded'); 
+                $(this).find('i').toggleClass('ph-caret-down ph-caret-up'); 
+            });
+            $('#btn-status-expand').click(function() { 
+                $('#status-bar-content').toggleClass('expanded'); 
+                $(this).find('i').toggleClass('ph-caret-up ph-caret-down'); 
+            });
             $('#mobile-menu-btn').click(() => { $('#sidebar, #sidebar-overlay').addClass('open'); });
             $('#sidebar-overlay').click(() => { $('#sidebar, #sidebar-overlay').removeClass('open'); });
 
@@ -912,7 +922,7 @@
                 if (isRecording) recognition.stop(); else { recognition.lang = currentLang === 'ml' ? 'ml-IN' : 'en-IN'; recognition.start(); }
             });
 
-            // --- FML CONVERSION ---
+            // --- FML CONVERSION (CORRECTED & RESTORED) ---
             $('#btn-copy-fml').on('click', function() {
                 let text = $('#editor')[0].innerText || $('#editor').text(); 
                 text = text.replace(/\u0D4A/g, "\u0D46\u0D3E").replace(/\u0D4B/g, "\u0D47\u0D3E").replace(/\u0D4C/g, "\u0D46\u0D57"); 
@@ -925,10 +935,12 @@
                 for (let [ml, ascii] of Object.entries(conjuncts)) { text = text.split(ml).join(ascii); }
 
                 const fmlMap = { 'അ':'A', 'ആ':'B', 'ഇ':'C', 'ഈ':'Cu', 'ഉ':'D', 'ഊ':'Du', 'ഋ':'E', 'എ':'F', 'ഏ':'G', 'ഐ':'sF', 'ഒ':'H', 'ഓ':'Hm', 'ഔ':'Hu', 'ക':'I', 'ഖ':'J', 'ഗ':'K', 'ഘ':'L', 'ങ':'M', 'ച':'N', 'ഛ':'O', 'ജ':'P', 'ഝ':'Q', 'ഞ':'R', 'ട':'S', 'ഠ':'T', 'ഡ':'U', 'ഢ':'V', 'ണ':'W', 'ത':'X', 'ഥ':'Y', 'ദ':'Z', 'ധ':'[', 'ന':'\\', 'പ':']', 'ഫ':'^', 'ബ':'_', 'ഭ':'`', 'മ':'a', 'യ':'b', 'ര':'c', 'റ':'d', 'ല':'e', 'ള':'f', 'ഴ':'g', 'വ':'h', 'ശ':'i', 'ഷ':'j', 'സ':'k', 'ഹ':'l', '\u0D46':'s', '\u0D47':'t', '\u0D48':'ss', '\u0D3F':'n', '\u0D40':'o', '\u0D41':'p', '\u0D42':'q', '\u0D43':'r', '\u0D3E':'m', '\u0D57':'u', '\u0D4D':'v', '\u0D02':'w', '\u0D03':'x', 'ർ':'À', 'ൽ':'Â', 'ൾ':'Ä', 'ൺ':'¬', 'ൻ':'³' };
+                
                 let fmlOutput = "";
                 for (let i = 0; i < text.length; i++) { let char = text[i]; fmlOutput += (fmlMap[char]) ? fmlMap[char] : char; }
 
-                $('#fml-output-area').val(fmlOutput); $('#fml-modal').fadeIn(200).css("display", "flex");
+                $('#fml-output-area').val(fmlOutput); 
+                $('#fml-modal').fadeIn(200).css("display", "flex");
             });
 
             $('#modal-copy-btn').on('click', function() { navigator.clipboard.writeText($('#fml-output-area').val()); $(this).html('✅ Copied!'); setTimeout(() => $(this).html('📋 Copy to Clipboard'), 2000); });
