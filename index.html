@@ -148,7 +148,7 @@
         .suggestion-item.predictive { background: #e0f2fe; border-color: #38bdf8; color: #0369a1; font-size: 0.95rem; }
         body.dark-theme .suggestion-item.predictive { background: #0c4a6e; border-color: #0284c7; color: #bae6fd; }
 
-        /* EDITOR CONTAINER - Scroll Adjustments */
+        /* EDITOR CONTAINER - SCROLL FIX */
         #editor-container { flex-grow: 1; overflow-y: auto; width: 100%; background: var(--bg-main); min-height: 0; position: relative; scroll-behavior: smooth;}
         #editor-wrapper-inner { width: 100%; min-height: 100%; display: flex; flex-direction: column; }
         #editor { flex-grow: 1; padding: 40px; border: none; outline: none; font-family: 'Manjari', sans-serif; font-size: 18px; line-height: 1.8; color: var(--text-primary); }
@@ -546,7 +546,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        // REMOVED signInWithRedirect TO FIX MOBILE SAFARI/CHROME BUG
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -567,14 +568,6 @@
         let saveTimeout;
         let currentLang = 'ml'; 
         let currentKeyboard = 'phonetic';
-
-        // Fix for Mobile Auth Redirect Result
-        getRedirectResult(auth).then((result) => {
-            if (result !== null) { console.log("Mobile redirect successful"); }
-        }).catch((error) => {
-            console.error("Redirect Error:", error);
-            alert("Login failed! \n\nPlease Ensure kishorepk45229.github.io is added to Firebase Authorized Domains. \n\n(Error: " + error.message + ")");
-        });
 
         // Word Count Updater
         function updateWordCount() {
@@ -640,32 +633,37 @@
             }
         });
 
-        // --- NEW LOGIN SYSTEM (MOBILE POPUP FIX) ---
-        async function handleLogin(promptSelectAccount = false) {
-            const keepSignedIn = $('#keep-signed-in').is(':checked');
-            const persistenceType = keepSignedIn ? browserLocalPersistence : browserSessionPersistence;
-            
-            try {
-                await setPersistence(auth, persistenceType);
-                const provider = new GoogleAuthProvider();
-                if (promptSelectAccount) { provider.setCustomParameters({ prompt: 'select_account' }); }
-                
-                // Use Redirect for Mobile devices to bypass Safari Popup Blockers
-                if (window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-                    signInWithRedirect(auth, provider);
-                } else {
-                    await signInWithPopup(auth, provider);
-                }
-            } catch (error) {
-                console.error("Login Error:", error);
-                let msg = "Login failed! \n\nEnsure your domain is added to Firebase Authorized Domains.";
-                if(error.code === 'auth/popup-blocked') msg = "Popup blocked! Please allow popups for this site.";
-                alert(msg + " \n\n(Error Details: " + error.message + ")");
-            }
-        }
+        // --- NEW LOGIN SYSTEM (100% POPUP BLOCKER SAFE) ---
+        // We set persistence in background when checkbox changes to avoid delaying the popup trigger.
+        $('#keep-signed-in').change(function() {
+            const pType = $(this).is(':checked') ? browserLocalPersistence : browserSessionPersistence;
+            setPersistence(auth, pType).catch(console.error);
+        });
 
-        $('#btn-google-login').click(() => handleLogin(false));
-        $('#btn-other-account').click(() => handleLogin(true));
+        $('#btn-google-login').click(function() {
+            const provider = new GoogleAuthProvider();
+            signInWithPopup(auth, provider).catch(error => {
+                console.error("Login Error:", error);
+                if(error.code === 'auth/popup-blocked') {
+                    alert("Popup blocked! Please allow popups for this site in your browser settings to login.");
+                } else {
+                    alert("Login failed! \n\nEnsure your domain is added to Firebase Authorized Domains.");
+                }
+            });
+        });
+
+        $('#btn-other-account').click(function() {
+            const provider = new GoogleAuthProvider();
+            provider.setCustomParameters({ prompt: 'select_account' });
+            signInWithPopup(auth, provider).catch(error => {
+                console.error("Login Error:", error);
+                if(error.code === 'auth/popup-blocked') {
+                    alert("Popup blocked! Please allow popups for this site.");
+                } else {
+                    alert("Login failed! \n\nEnsure your domain is added to Firebase Authorized Domains.");
+                }
+            });
+        });
 
         $('#btn-guest-login').click(function() {
             $('#login-overlay').css('opacity', '0');
@@ -732,7 +730,8 @@
             let newTitle = prompt("Enter new file name:", oldTitle);
             
             if(newTitle && newTitle.trim() !== "" && newTitle !== oldTitle) {
-                try { await updateDoc(doc(db, `users/${currentUserId}/files`, fileId), { title: newTitle });
+                try {
+                    await updateDoc(doc(db, `users/${currentUserId}/files`, fileId), { title: newTitle });
                 } catch(error) { console.error("Error renaming file:", error); }
             }
         });
@@ -837,7 +836,7 @@
                 $(this).html($('body').hasClass('dark-theme') ? '<i class="ph ph-sun"></i>' : '<i class="ph ph-moon"></i>');
             });
 
-            // Mobile & Dropdown Toggles
+            // Mobile & Dropdown Toggles (FIXED)
             $('#btn-toolbar-expand').click(function() { 
                 $('#toolbar-secondary').toggleClass('expanded'); 
                 $(this).find('i').toggleClass('ph-caret-down ph-caret-up'); 
@@ -874,7 +873,6 @@
                     }
                 }
             }
-            // Bind to events when cursor might move down
             $('#editor').on('input keyup click', autoScrollMobile);
 
             // --- ABC LIST LOGIC ---
